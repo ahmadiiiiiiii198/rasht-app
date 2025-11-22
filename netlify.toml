@@ -5,6 +5,7 @@
 # Use Node 18 for better compatibility with react-scripts 5.0.1
 [build.environment]
   NODE_VERSION = "18"
+  CI = "false"
 
 # Redirect all routes to index.html for SPA routing
 [[redirects]]
