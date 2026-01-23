@@ -1,0 +1,39 @@
+{
+    "project_info": {
+        "project_number": "941204333853",
+        "project_id": "adib-a6266",
+        "storage_bucket": "adib-a6266.firebasestorage.app"
+    },
+    "client": [
+        {
+            "client_info": {
+                "mobilesdk_app_id": "1:941204333853:android:37e10820b37215dc11edf4",
+                "android_client_info": {
+                    "package_name": "com.efeskebap.customer"
+                }
+            },
+            "oauth_client": [
+                {
+                    "client_id": "941204333853-6e03onuksjernk06ela65shjs1ujrjfr.apps.googleusercontent.com",
+                    "client_type": 3
+                }
+            ],
+            "api_key": [
+                {
+                    "current_key": "AIzaSyDl923Qxh1aHexUlGiDI4HRFQGUSoaBlB0"
+                }
+            ],
+            "services": {
+                "appinvite_service": {
+                    "other_platform_oauth_client": [
+                        {
+                            "client_id": "941204333853-6e03onuksjernk06ela65shjs1ujrjfr.apps.googleusercontent.com",
+                            "client_type": 3
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "configuration_version": "1"
+}

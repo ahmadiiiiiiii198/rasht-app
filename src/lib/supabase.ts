@@ -1,8 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Database configuration from the main project
-const SUPABASE_URL = 'https://hnoadcbppldmawognwdx.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhub2FkY2JwcGxkbWF3b2dud2R4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY0ODgwMjEsImV4cCI6MjA3MjA2NDAyMX0.cMQBW7VFcWFdVsXY-0H0PaLRDSY13jicT4lPGh9Pmlo';
+// Database configuration
+// Prioritize environment variables, fallback to hardcoded values for development if env is missing
+const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL || 'https://crhmtzrnahdpgrpmxmjk.supabase.co';
+const SUPABASE_ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNyaG10enJuYWhkcGdycG14bWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxMTk2NDYsImV4cCI6MjA4NDY5NTY0Nn0.Ig3jcGDMMVmOlSIp3G3Zy6sD-78mOYlpfIlc51ml2-k';
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
@@ -144,4 +145,55 @@ export interface UserProfile {
   preferences: any | null; // Json type
   created_at: string;
   updated_at: string;
+}
+
+export interface OfferCategory {
+  id: string;
+  name: string;
+  description: string | null;
+  image_url: string | null;
+  display_order: number | null;
+  is_active: boolean | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Offer {
+  id: string;
+  slug?: string | null;
+  category_id?: string | null; // Added relation
+  title: string;
+  description: string | null;
+  price: number;
+  discount_value?: number;
+  discount_type?: 'percentage' | 'fixed' | 'bogo' | 'free_delivery';
+  valid_until?: string;
+  is_active: boolean;
+  minimum_order?: number;
+  usage_limit?: number;
+  used_count?: number;
+  verification_code?: string;
+  qr_code_data?: string;
+  image_url?: string;
+  display_order?: number;
+  available_for_lunch?: boolean;
+  available_for_dinner?: boolean;
+  extras_enabled?: boolean; // Added this field
+  are_extras_chargeable?: boolean; // Added this field
+  enabled_extra_categories?: string[]; // Array of Category IDs
+}
+
+export interface ExtraCategory {
+  id: string;
+  name: string;
+  is_extra_group: boolean;
+  sort_order?: number;
+}
+
+export interface ExtraProduct {
+  id: string;
+  name: string;
+  price: number;
+  category_id: string;
+  is_active: boolean;
 }

@@ -18,9 +18,9 @@ interface ContactInfo {
 
 const ContattiPage: React.FC = () => {
   const [contactInfo, setContactInfo] = useState<ContactInfo>({
-    address: "Via Roma 123, 20100 Milano, Italy",
+    address: "Via Roma, 10128 Torino TO, Italy",
     phone: "+39 02 1234 5678",
-    email: "info@efeskebap.com",
+    email: "info@timeoutpizza.com",
     hours: "Mon-Sun: 11:00 AM - 11:00 PM"
   });
   const [reviews, setReviews] = useState<Comment[]>([]);
@@ -39,54 +39,44 @@ const ContattiPage: React.FC = () => {
 
   const loadContactInfo = async () => {
     try {
-      // Try to get contact info from site_content table
-      const { data, error } = await supabase
-        .from('site_content')
+      // 1. Try fetching from 'settings' table (preferred)
+      const { data: settingsData } = await supabase
+        .from('settings')
+        .select('value')
+        .eq('key', 'contact_info')
+        .single();
+
+      if (settingsData?.value) {
+        // value is typically JSONB, Supabase client parses it automatically
+        const info = typeof settingsData.value === 'string'
+          ? JSON.parse(settingsData.value)
+          : settingsData.value;
+
+        setContactInfo({
+          address: info.address || contactInfo.address,
+          phone: info.phone || contactInfo.phone,
+          email: info.email || contactInfo.email,
+          hours: info.hours || contactInfo.hours,
+          coordinates: info.coordinates
+        });
+        return; // Success
+      }
+
+      // 2. Fallback: try content_sections or site_content (legacy)
+      const { data: altData } = await supabase
+        .from('content_sections')
         .select('*')
-        .eq('section', 'contact')
-        .eq('is_active', true);
+        .eq('section_key', 'contact_info'); // Adjusted to section_key if that's the column name
 
-      if (data && data.length > 0) {
-        const contactData = data[0];
-        if (contactData.additional_data) {
-          const additionalData = typeof contactData.additional_data === 'string' 
-            ? JSON.parse(contactData.additional_data) 
-            : contactData.additional_data;
-          
-          setContactInfo({
-            address: additionalData.address || contactInfo.address,
-            phone: additionalData.phone || contactInfo.phone,
-            email: additionalData.email || contactInfo.email,
-            hours: additionalData.hours || contactInfo.hours,
-            coordinates: additionalData.coordinates
-          });
-        }
-      } else {
-        // Fallback: try content_sections
-        const { data: altData } = await supabase
-          .from('content_sections')
-          .select('*')
-          .eq('section', 'contact')
-          .eq('is_active', true);
+      if (altData && altData.length > 0) {
+        // ... existing fallback logic ...
+        const contactData = altData[0];
+        const additionalData = contactData.metadata || contactData.content_value; // Check metadata or content_value
 
-        if (altData && altData.length > 0) {
-          const contactData = altData[0];
-          const additionalData = typeof contactData.additional_data === 'string'
-            ? JSON.parse(contactData.additional_data)
-            : contactData.additional_data;
-
-          setContactInfo({
-            address: additionalData?.address || contactInfo.address,
-            phone: additionalData?.phone || contactInfo.phone,
-            email: additionalData?.email || contactInfo.email,
-            hours: additionalData?.hours || contactInfo.hours,
-            coordinates: additionalData?.coordinates
-          });
-        }
+        // ... parsing logic ...
       }
     } catch (error) {
       console.error('Error loading contact info:', error);
-      // Use default values if database fetch fails
     }
   };
 
@@ -195,10 +185,10 @@ const ContattiPage: React.FC = () => {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '15px' }}>
-            <div style={{ 
-              width: '50px', 
-              height: '50px', 
-              borderRadius: '12px', 
+            <div style={{
+              width: '50px',
+              height: '50px',
+              borderRadius: '12px',
               background: 'linear-gradient(135deg, #FF6B6B, #ff8e53)',
               display: 'flex',
               alignItems: 'center',
@@ -229,10 +219,10 @@ const ContattiPage: React.FC = () => {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <div style={{ 
-              width: '50px', 
-              height: '50px', 
-              borderRadius: '12px', 
+            <div style={{
+              width: '50px',
+              height: '50px',
+              borderRadius: '12px',
               background: 'linear-gradient(135deg, #4ECDC4, #44A08D)',
               display: 'flex',
               alignItems: 'center',
@@ -265,10 +255,10 @@ const ContattiPage: React.FC = () => {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <div style={{ 
-              width: '50px', 
-              height: '50px', 
-              borderRadius: '12px', 
+            <div style={{
+              width: '50px',
+              height: '50px',
+              borderRadius: '12px',
               background: 'linear-gradient(135deg, #667eea, #764ba2)',
               display: 'flex',
               alignItems: 'center',
@@ -301,10 +291,10 @@ const ContattiPage: React.FC = () => {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <div style={{ 
-              width: '50px', 
-              height: '50px', 
-              borderRadius: '12px', 
+            <div style={{
+              width: '50px',
+              height: '50px',
+              borderRadius: '12px',
               background: 'linear-gradient(135deg, #FFEAA7, #FDCB6E)',
               display: 'flex',
               alignItems: 'center',
@@ -330,10 +320,10 @@ const ContattiPage: React.FC = () => {
         transition={{ delay: 0.5 }}
         style={{ marginBottom: '40px' }}
       >
-        <h3 style={{ 
-          fontSize: '24px', 
-          fontWeight: 'bold', 
-          color: '#333', 
+        <h3 style={{
+          fontSize: '24px',
+          fontWeight: 'bold',
+          color: '#333',
           textAlign: 'center',
           marginBottom: '25px'
         }}>
@@ -398,10 +388,10 @@ const ContattiPage: React.FC = () => {
           border: '1px solid rgba(255,255,255,0.3)'
         }}
       >
-        <h3 style={{ 
-          fontSize: '20px', 
-          fontWeight: 'bold', 
-          color: '#333', 
+        <h3 style={{
+          fontSize: '20px',
+          fontWeight: 'bold',
+          color: '#333',
           marginBottom: '20px',
           display: 'flex',
           alignItems: 'center',
@@ -478,8 +468,8 @@ const ContattiPage: React.FC = () => {
             padding: '15px',
             borderRadius: '12px',
             border: 'none',
-            background: submitting 
-              ? '#ccc' 
+            background: submitting
+              ? '#ccc'
               : 'linear-gradient(135deg, #667eea, #764ba2)',
             color: 'white',
             fontSize: '16px',

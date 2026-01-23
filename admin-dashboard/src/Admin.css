@@ -1,0 +1,261 @@
+/* Admin Dashboard Styles */
+:root {
+    --primary-color: #ea580c;
+    /* Orange-600 */
+    --sidebar-bg: #0f172a;
+    /* Slate-900 */
+    --sidebar-text: #94a3b8;
+    /* Slate-400 */
+    --bg-color: #f8fafc;
+    /* Slate-50 */
+    --card-bg: #ffffff;
+    --text-main: #1e293b;
+    /* Slate-800 */
+    --border-color: #e2e8f0;
+    /* Slate-200 */
+}
+
+body {
+    margin: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+}
+
+.admin-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 260px;
+    background-color: var(--sidebar-bg);
+    color: white;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 2.5rem;
+}
+
+.brand-logo {
+    width: 40px;
+    height: 40px;
+    background-color: var(--primary-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.25rem;
+    color: white;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--sidebar-text);
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+    width: 100%;
+}
+
+.nav-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.nav-item.active {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.logout-btn {
+    margin-top: auto;
+    color: var(--sidebar-text);
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+}
+
+.logout-btn:hover {
+    color: #ef4444;
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.top-bar {
+    background: white;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.page-title {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-main);
+    text-transform: capitalize;
+}
+
+.content-area {
+    padding: 2rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* Card Styles */
+.card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.card-header {
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    /* Optional */
+    cursor: pointer;
+}
+
+.card-header:hover {
+    background-color: #f8fafc;
+}
+
+.card-content {
+    padding: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.btn {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.875rem;
+}
+
+.btn-primary {
+    background-color: #0f172a;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #1e293b;
+}
+
+.product-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+}
+
+.product-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.product-thumb {
+    width: 48px;
+    height: 48px;
+    background: #f1f5f9;
+    border-radius: 6px;
+    object-fit: cover;
+}
+
+.actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.action-btn {
+    padding: 8px;
+    border-radius: 4px;
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+    cursor: pointer;
+}
+
+.action-btn:hover {
+    color: var(--primary-color);
+    background: #f1f5f9;
+}
+
+.badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+/* Dashboard Cards */
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    border-left: 4px solid var(--primary-color);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-top: 0.5rem;
+}

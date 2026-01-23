@@ -8,21 +8,50 @@ const HomePage: React.FC = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      style={{ padding: '20px 0' }}
+      style={{ padding: '20px 0', background: '#0f172a', minHeight: '100vh', color: 'white' }}
     >
-      <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+      <div style={{ textAlign: 'center', marginBottom: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <motion.div
+          animate={{
+            y: [-10, 10, -10],
+            rotate: [-2, 2, -2]
+          }}
+          transition={{
+            duration: 4,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          style={{ marginBottom: '20px' }}
+        >
+          <img
+            src="/basketball-real.png"
+            alt="Time Out Pizza Basketball"
+            style={{
+              width: '240px',
+              height: '240px',
+              objectFit: 'cover', // cover ensures circle fill
+              borderRadius: '50%', // Masks the white background corners
+              filter: 'drop-shadow(0 20px 30px rgba(0,0,0,0.4))'
+            }}
+          />
+        </motion.div>
+
         <motion.h1
           initial={{ scale: 0.8 }}
           animate={{ scale: 1 }}
           transition={{ delay: 0.2, type: "spring" }}
           style={{
             fontSize: '32px',
-            fontWeight: 'bold',
-            color: '#333',
-            marginBottom: '10px'
+            fontWeight: '900',
+            color: '#e2e8f0', // Changing to light hoping for dark theme, 
+            // actually I should set the background of this page to dark to match Menu.
+            // The user wants "High Graphic".
+            marginBottom: '10px',
+            textTransform: 'uppercase',
+            letterSpacing: '1px'
           }}
         >
-          Welcome to Efes Kebap! 🍕
+          TIME OUT PIZZA
         </motion.h1>
         <motion.p
           initial={{ opacity: 0 }}
@@ -30,11 +59,12 @@ const HomePage: React.FC = () => {
           transition={{ delay: 0.4 }}
           style={{
             fontSize: '16px',
-            color: '#666',
-            lineHeight: '1.6'
+            color: '#94a3b8',
+            lineHeight: '1.6',
+            maxWidth: '300px'
           }}
         >
-          Authentic Turkish cuisine delivered fresh to your door
+          MVP FLAVOR IN EVERY SLICE
         </motion.p>
       </div>
 
@@ -82,7 +112,7 @@ const HomePage: React.FC = () => {
             <div>
               <h3 style={{ color: '#333', margin: '0 0 5px 0' }}>Location</h3>
               <p style={{ color: '#666', margin: 0, fontSize: '14px' }}>
-                Via Roma 123, Torino, Italy
+                Via Roma, 10128 Torino TO, Italy
               </p>
             </div>
           </div>
@@ -102,7 +132,7 @@ const HomePage: React.FC = () => {
             <div>
               <h3 style={{ color: '#333', margin: '0 0 5px 0' }}>Contact</h3>
               <p style={{ color: '#666', margin: 0, fontSize: '14px' }}>
-                +39 011 123 4567
+                +39 02 1234 5678
               </p>
             </div>
           </div>
@@ -124,7 +154,7 @@ const HomePage: React.FC = () => {
         <Star size={32} style={{ marginBottom: '10px' }} />
         <h3 style={{ margin: '0 0 10px 0', fontSize: '20px' }}>Today's Special</h3>
         <p style={{ margin: '0 0 15px 0', fontSize: '16px' }}>
-          Mixed Kebap Platter with Turkish Bread
+          Try our MVP Specials!
         </p>
         <motion.button
           whileHover={{ scale: 1.05 }}

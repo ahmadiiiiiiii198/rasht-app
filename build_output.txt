@@ -1,0 +1,12 @@
+
+> efes-customer-app@0.1.0 build
+> react-scripts build
+
+Creating an optimized production build...
+Failed to compile.
+
+[eslint] 
+src\hooks\useCart.ts
+Syntax error: Expression expected (14:11)
+
+

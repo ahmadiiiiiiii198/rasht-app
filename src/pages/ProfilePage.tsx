@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { User, Mail, Phone, MapPin, Edit3, Camera, Heart, Settings, Save } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Edit3, Camera, Heart, Settings, Save, LogOut } from 'lucide-react';
 import { supabase, UserProfile } from '../lib/supabase';
 import { getUserOrders } from '../lib/database';
+import { useAuth } from '../contexts/AuthContext';
 
 // Using UserProfile interface from database
 
 const ProfilePage: React.FC = () => {
+  const { logout: authLogout } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -111,7 +113,7 @@ const ProfilePage: React.FC = () => {
 
       const favoriteOrder = Object.keys(orderCounts).length > 0
         ? Object.entries(orderCounts).sort((a, b) => b[1] - a[1])[0][0]
-        : 'No orders yet';
+        : 'Nessun ordine';
 
       setStats({
         totalOrders: orders.length,
@@ -161,6 +163,18 @@ const ProfilePage: React.FC = () => {
         ...profile,
         [field]: value
       });
+    }
+  };
+
+  const handleLogout = () => {
+    if (window.confirm('Are you sure you want to log out?')) {
+      // Use global auth logout which clears everything and dispatches event
+      authLogout();
+
+      // Reset local state
+      setProfile(null);
+      setUserEmail('');
+      setLoginEmail('');
     }
   };
 
@@ -332,7 +346,7 @@ const ProfilePage: React.FC = () => {
           {profile.full_name || 'Anonymous User'}
         </h3>
         <p style={{ margin: '0', opacity: 0.9, fontSize: '16px' }}>
-          Efes Kebap Customer
+          Time Out Pizza Customer
         </p>
 
         <div style={{
@@ -347,7 +361,7 @@ const ProfilePage: React.FC = () => {
               {stats.totalOrders}
             </div>
             <div style={{ fontSize: '12px', opacity: 0.8 }}>
-              Total Orders
+              Ordini Totali
             </div>
           </div>
           <div style={{ textAlign: 'center' }}>
@@ -355,7 +369,7 @@ const ProfilePage: React.FC = () => {
               {stats.loyaltyPoints}
             </div>
             <div style={{ fontSize: '12px', opacity: 0.8 }}>
-              Loyalty Points
+              Punti Fedeltà
             </div>
           </div>
           <div style={{ textAlign: 'center' }}>
@@ -584,6 +598,7 @@ const ProfilePage: React.FC = () => {
           background: 'rgba(255, 255, 255, 0.9)',
           borderRadius: '20px',
           padding: '25px',
+          marginBottom: '20px',
           boxShadow: '0 5px 20px rgba(0,0,0,0.1)'
         }}
       >
@@ -613,6 +628,35 @@ const ProfilePage: React.FC = () => {
           </div>
         </div>
       </motion.div>
+
+      {/* Logout Button */}
+      <motion.button
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.7 }}
+        onClick={handleLogout}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        style={{
+          width: '100%',
+          background: '#FF4D4D',
+          color: 'white',
+          border: 'none',
+          padding: '18px',
+          borderRadius: '20px',
+          fontSize: '16px',
+          fontWeight: 'bold',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '10px',
+          boxShadow: '0 5px 20px rgba(255, 77, 77, 0.3)'
+        }}
+      >
+        <LogOut size={20} />
+        Log Out
+      </motion.button>
     </motion.div>
   );
 };

@@ -16,12 +16,12 @@ export const getProducts = async (categoryId?: string): Promise<Product[]> => {
     }
 
     const { data, error } = await query;
-    
+
     if (error) {
       console.error('❌ Error fetching products:', error);
       return [];
     }
-    
+
     console.log('✅ getProducts returned:', data?.length || 0, 'products');
     if (data && data.length > 0) {
       console.log('First product:', data[0]);
@@ -41,12 +41,12 @@ export const getCategories = async (): Promise<Category[]> => {
       .select('*')
       .eq('is_active', true)
       .order('sort_order', { ascending: true });
-    
+
     if (error) {
       console.error('❌ Error fetching categories:', error);
       return [];
     }
-    
+
     console.log('✅ getCategories returned:', data?.length || 0, 'categories');
     if (data && data.length > 0) {
       console.log('First category:', data[0]);
@@ -68,12 +68,12 @@ export const getFeaturedProducts = async (): Promise<Product[]> => {
       .eq('is_featured', true)
       .order('sort_order', { ascending: true })
       .limit(6);
-    
+
     if (error) {
       console.error('Error fetching featured products:', error);
       return [];
     }
-    
+
     return data || [];
   } catch (error) {
     console.error('Error fetching featured products:', error);
@@ -89,12 +89,12 @@ export const getUserOrders = async (customerEmail: string): Promise<Order[]> => 
       .select('*')
       .eq('customer_email', customerEmail)
       .order('created_at', { ascending: false });
-    
+
     if (error) {
       console.error('Error fetching orders:', error);
       return [];
     }
-    
+
     return data || [];
   } catch (error) {
     console.error('Error fetching orders:', error);
@@ -109,12 +109,12 @@ export const getOrderItems = async (orderId: string): Promise<OrderItem[]> => {
       .from('order_items')
       .select('*')
       .eq('order_id', orderId);
-    
+
     if (error) {
       console.error('Error fetching order items:', error);
       return [];
     }
-    
+
     return data || [];
   } catch (error) {
     console.error('Error fetching order items:', error);
@@ -148,14 +148,38 @@ export const createOrder = async (orderData: CreateOrderData): Promise<string | 
   try {
     // Generate order number
     const orderNumber = `ORD-${Date.now()}`;
-    
-    // Calculate total from items
-    const itemsTotal = orderData.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const finalTotal = typeof orderData.total_amount === 'number' ? orderData.total_amount : itemsTotal;
+
+    // Helper function to safely parse price
+    const parsePrice = (price: string | number | null | undefined): number => {
+      if (price === null || price === undefined) return 0;
+      if (typeof price === 'string') {
+        const parsed = parseFloat(price);
+        return isNaN(parsed) ? 0 : parsed;
+      }
+      return isNaN(price) ? 0 : price;
+    };
+
+    // Calculate total from items with proper price parsing
+    const itemsTotal = orderData.items.reduce((sum, item) => {
+      const price = parsePrice(item.price);
+      return sum + (price * item.quantity);
+    }, 0);
+
+    const finalTotal = typeof orderData.total_amount === 'number' && orderData.total_amount > 0
+      ? orderData.total_amount
+      : itemsTotal;
     const deliveryFee = typeof orderData.delivery_fee === 'number'
       ? orderData.delivery_fee
       : Math.max(finalTotal - itemsTotal, 0);
-    
+
+    console.log('📦 Creating order:', {
+      orderNumber,
+      customerName: orderData.customer_name,
+      itemsTotal,
+      finalTotal,
+      deliveryFee
+    });
+
     // Create order
     const { data: order, error: orderError } = await supabase
       .from('orders')
@@ -168,46 +192,70 @@ export const createOrder = async (orderData: CreateOrderData): Promise<string | 
         total_amount: finalTotal,
         delivery_fee: deliveryFee,
         delivery_type: orderData.delivery_type || 'delivery',
-        payment_method: orderData.payment_method || 'cash', // Default to cash if not provided
+        payment_method: orderData.payment_method || 'cash',
         special_instructions: orderData.special_instructions,
-        status: 'pending',
+        status: 'confirmed', // Set to confirmed like website does
         order_status: 'pending',
         payment_status: 'pending'
       })
       .select()
       .single();
-    
+
     if (orderError || !order) {
-      console.error('Error creating order:', orderError);
+      console.error('❌ Error creating order:', orderError);
       return null;
     }
-    
-    // Create order items
-    const orderItems = orderData.items.map(item => ({
-      order_id: order.id,
-      product_id: item.product_id,
-      product_name: item.product_name,
-      quantity: item.quantity,
-      product_price: item.price,
-      unit_price: item.price,
-      subtotal: item.price * item.quantity,
-      special_requests: item.special_requests,
-      size: item.size,
-      toppings: item.toppings
-    }));
-    
+
+    console.log('✅ Order created:', order.id, order.order_number);
+
+    // Create order items with proper price parsing
+    const orderItems = orderData.items.map(item => {
+      const itemPrice = parsePrice(item.price);
+      return {
+        order_id: order.id,
+        product_id: item.product_id,
+        product_name: item.product_name,
+        quantity: item.quantity,
+        product_price: itemPrice,
+        unit_price: itemPrice,
+        subtotal: itemPrice * item.quantity,
+        special_requests: item.special_requests,
+        size: item.size,
+        toppings: item.toppings
+      };
+    });
+
     const { error: itemsError } = await supabase
       .from('order_items')
       .insert(orderItems);
-    
+
     if (itemsError) {
-      console.error('Error creating order items:', itemsError);
-      // Could rollback order here if needed
+      console.error('❌ Error creating order items:', itemsError);
+    } else {
+      console.log('✅ Order items created successfully');
     }
-    
+
+    // Create order notification (matching website behavior)
+    const { error: notificationError } = await supabase
+      .from('order_notifications')
+      .insert({
+        order_id: order.id,
+        notification_type: 'new_order',
+        title: 'Nuovo Ordine! 📱',
+        message: `Nuovo ordine app da ${orderData.customer_name} - ${orderData.items.length} prodotti - €${finalTotal.toFixed(2)}`,
+        is_read: false,
+        is_acknowledged: false
+      });
+
+    if (notificationError) {
+      console.error('⚠️ Error creating notification:', notificationError);
+    } else {
+      console.log('✅ Order notification created');
+    }
+
     return order.id;
   } catch (error) {
-    console.error('Error creating order:', error);
+    console.error('❌ Error creating order:', error);
     return null;
   }
 };

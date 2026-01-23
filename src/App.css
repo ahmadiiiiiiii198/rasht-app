@@ -1,8 +1,23 @@
+/* ============================================
+   GASTRONOMIA RASHT - Clean Persian Design
+   ============================================ */
+
+/* Persian Color Palette */
 :root {
+  --persian-emerald: #0d3d2e;
+  --persian-emerald-dark: #082920;
+  --persian-emerald-light: #145a44;
+  --persian-gold: #c9a45c;
+  --persian-gold-light: #dfc080;
+  --persian-gold-dark: #9c7a3a;
+  --persian-cream: #f5f0e1;
+  --persian-ivory: #fffef5;
   --page-padding: 40px;
   --safe-area-top: env(safe-area-inset-top, 20px);
   --safe-area-bottom: env(safe-area-inset-bottom, 20px);
 }
+
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Cinzel:wght@400;500;600;700&display=swap');
 
 * {
   margin: 0;
@@ -11,13 +26,11 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: 'Cormorant Garamond', Georgia, serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
-  background: #1a1f2e;
+  background: #0a0a0a;
 }
 
 .app {
@@ -30,34 +43,83 @@ body {
   overflow: hidden;
 }
 
-.background {
+/* ============================================
+   CLEAN PERSIAN PIZZA BACKGROUND
+   ============================================ */
+
+.background-static {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  z-index: -1;
+  z-index: 0;
+  /* Matching the logo's deep emerald green #0d3d2e */
+  background: radial-gradient(circle at center, #0d3d2e 0%, #082920 60%, #051a14 100%);
 }
 
-.background::before {
+/* Golden texture overlay */
+.background-static::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: 
-    radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
-    radial-gradient(circle at 40% 80%, rgba(120, 219, 255, 0.3) 0%, transparent 50%);
-  animation: backgroundShift 10s ease-in-out infinite alternate;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c9a45c' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  pointer-events: none;
 }
 
-@keyframes backgroundShift {
-  0% { transform: translateX(-10px) translateY(-10px); }
-  100% { transform: translateX(10px) translateY(10px); }
+/* Static Pizza Background Images - Arranged Artistically */
+.bg-pizza {
+  position: absolute;
+  opacity: 0.6;
+  /* Increased visibility */
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5));
+  pointer-events: none;
+  z-index: 1;
+  transition: all 0.5s ease;
 }
+
+/* Top Left - Main Pizza */
+.pizza-top-left {
+  top: -60px;
+  left: -80px;
+  width: 320px;
+  height: 320px;
+  object-fit: cover;
+  border-radius: 50%;
+  transform: rotate(15deg);
+  border: 1px solid rgba(201, 164, 92, 0.2);
+}
+
+/* Bottom Right - Secondary Pizza */
+.pizza-bottom-right {
+  bottom: -40px;
+  right: -50px;
+  width: 280px;
+  height: 280px;
+  object-fit: cover;
+  border-radius: 50%;
+  transform: rotate(-10deg);
+  border: 1px solid rgba(201, 164, 92, 0.2);
+}
+
+/* Bottom Left - Accent Pizza */
+.pizza-bottom-left {
+  bottom: 10%;
+  left: -120px;
+  width: 240px;
+  height: 240px;
+  object-fit: cover;
+  border-radius: 50%;
+  opacity: 0.4;
+  filter: blur(2px);
+}
+
+/* ============================================
+   CENTRAL CIRCLE - LOGO CONTAINER
+   ============================================ */
 
 .central-circle {
   background: transparent;
@@ -68,65 +130,28 @@ body {
   position: relative;
   z-index: 10;
   overflow: hidden;
-  /* Enhance performance */
   will-change: width, height, border-radius;
+  border: 3px solid var(--persian-gold);
+  box-shadow:
+    0 0 0 1px var(--persian-gold-dark),
+    0 0 60px rgba(201, 164, 92, 0.2),
+    0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
-/* When expanded, the central circle becomes the page container */
-.central-circle.expanded {
-  background: #f5f7fa;
-}
-
-.page-content {
+.logo-container {
   width: 100%;
   height: 100%;
-  padding: var(--page-padding);
-  padding-top: calc(var(--page-padding) + var(--safe-area-top));
-  padding-bottom: calc(var(--page-padding) + var(--safe-area-bottom));
-  position: relative;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Remove scrollbars from page content for cleaner look, but allow scrolling */
-.page-content::-webkit-scrollbar {
-  width: 6px;
-}
-
-.page-content::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.05);
-}
-
-.page-content::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 3px;
-}
-
-.close-button {
-  position: absolute;
-  top: max(20px, var(--safe-area-top));
-  left: 20px;
-  width: 44px;
-  height: 44px;
-  border: none;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.9);
-  color: #333;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(10px);
-  z-index: 100;
-  transition: all 0.3s ease;
+  border-radius: 50%;
+  overflow: hidden;
+  background: transparent;
 }
 
-.close-button:hover {
-  transform: scale(1.1);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-}
+/* ============================================
+   NAVIGATION BUTTONS
+   ============================================ */
 
 .nav-container {
   position: absolute;
@@ -142,35 +167,28 @@ body {
 
 .nav-button {
   position: relative;
-  border: none;
+  border: 2px solid var(--persian-gold) !important;
   border-radius: 50%;
-  background: var(--button-color);
-  color: white;
+  background: linear-gradient(145deg, #0d3d2e 0%, #082920 100%) !important;
+  color: var(--persian-gold) !important;
   cursor: pointer;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  box-shadow: 
-    0 10px 30px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  backdrop-filter: blur(10px);
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.5),
+    0 0 15px rgba(201, 164, 92, 0.15) !important;
   pointer-events: all;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease;
+  overflow: visible !important;
 }
 
-.nav-button::before {
-  content: '';
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  border-radius: 50%;
-  background: linear-gradient(45deg, 
-    rgba(255, 255, 255, 0.3), 
-    transparent, 
-    rgba(255, 255, 255, 0.1));
-  z-index: -1;
+.nav-button:hover {
+  transform: scale(1.1);
+  box-shadow:
+    0 12px 30px rgba(0, 0, 0, 0.6),
+    0 0 25px rgba(201, 164, 92, 0.3) !important;
 }
 
 .button-content {
@@ -181,67 +199,110 @@ body {
 }
 
 .button-label {
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  opacity: 0.9;
+  font-family: 'Cinzel', serif !important;
+  font-size: 9px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+  color: var(--persian-gold) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
 }
 
-.logo-container {
-  text-align: center;
-  color: #333;
+/* ============================================
+   PAGE CONTENT (Expanded View)
+   ============================================ */
+
+.page-content {
   width: 100%;
   height: 100%;
+  padding: var(--page-padding);
+  padding-top: calc(var(--page-padding) + var(--safe-area-top));
+  padding-bottom: calc(var(--page-padding) + var(--safe-area-bottom));
+  position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  background: linear-gradient(180deg, var(--persian-cream) 0%, var(--persian-ivory) 100%);
+}
+
+.page-content.no-padding {
+  padding: 0;
+}
+
+.page-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.page-content::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.page-content::-webkit-scrollbar-thumb {
+  background: var(--persian-gold);
+  border-radius: 3px;
+}
+
+/* ============================================
+   CLOSE BUTTON
+   ============================================ */
+
+.close-button {
+  position: absolute;
+  top: max(20px, var(--safe-area-top));
+  left: 20px;
+  width: 48px;
+  height: 48px;
+  border: 2px solid var(--persian-gold);
+  border-radius: 50%;
+  background: linear-gradient(145deg, var(--persian-emerald) 0%, var(--persian-emerald-dark) 100%);
+  color: var(--persian-gold);
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+  transition: all 0.3s ease;
 }
 
-.particles {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 1;
+.close-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 }
 
-.particle {
-  position: absolute;
-  width: 4px;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: 50%;
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+/* ============================================
+   EXPANDED STATE
+   ============================================ */
+
+.central-circle.expanded {
+  background: var(--persian-cream);
+  border-radius: 20px;
 }
 
-/* Grid Utilities */
-.checkout-grid {
-  display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
-  gap: 24px;
-}
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
 
-/* Responsive Design */
 @media (max-width: 768px) {
   :root {
     --page-padding: 20px;
   }
 
-  .central-circle {
-    /* On mobile, we might want smaller initial circle */
+  .background-static::after {
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
   }
 
-  .checkout-grid {
-    grid-template-columns: 1fr;
+  .button-label {
+    font-size: 8px !important;
+    letter-spacing: 0.5px !important;
   }
-  
-  .nav-button {
-    /* Mobile sizes handled in JS mostly, but fallback here */
+
+  .close-button {
+    width: 42px;
+    height: 42px;
   }
 }
 
@@ -249,8 +310,24 @@ body {
   :root {
     --page-padding: 16px;
   }
-  
+
   .button-label {
-    display: none; /* Hide labels on very small screens if needed */
+    font-size: 7px !important;
+  }
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+.checkout-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 24px;
+}
+
+@media (max-width: 768px) {
+  .checkout-grid {
+    grid-template-columns: 1fr;
   }
 }

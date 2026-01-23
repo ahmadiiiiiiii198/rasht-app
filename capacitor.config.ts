@@ -1,9 +1,14 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.example.app',
-  appName: 'efes kebap',
-  webDir: 'build'
+  appId: 'com.timeoutpizza.app',
+  appName: 'Time Out Pizza',
+  webDir: 'build',
+  plugins: {
+    PushNotifications: {
+      presentationOptions: ["badge", "sound", "alert"]
+    }
+  }
 };
 
 export default config;

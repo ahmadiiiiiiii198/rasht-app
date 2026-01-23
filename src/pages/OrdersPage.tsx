@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle, Clock, Truck, ChefHat, MapPin, Phone, Mail, Package } from 'lucide-react';
+import { CheckCircle, Clock, Truck, ChefHat, MapPin, Phone, Package } from 'lucide-react';
 import { getUserOrders, getOrderItems, Order, OrderItem } from '../lib/database';
+import { useAuth } from '../contexts/AuthContext';
+import OrderTrackingMap from '../components/OrderTrackingMap';
 
 interface OrderWithItems extends Order {
   items?: OrderItem[];
@@ -32,6 +34,12 @@ const statusConfig = {
     label: 'Ready',
     description: 'Order ready for pickup/delivery'
   },
+  in_delivery: {
+    icon: <Truck size={24} />,
+    color: '#ea580c',
+    label: 'In Consegna',
+    description: 'Il rider sta consegnando il tuo ordine'
+  },
   delivered: {
     icon: <Truck size={24} />,
     color: '#2ed573',
@@ -47,10 +55,19 @@ const statusConfig = {
 };
 
 const OrdersPage: React.FC = () => {
+  const { isLoggedIn, userEmail: authEmail } = useAuth();
   const [orders, setOrders] = useState<OrderWithItems[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
   const [customerEmail, setCustomerEmail] = useState('');
+
+  // React to auth changes - reset when logged out
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setOrders([]);
+      setCustomerEmail('');
+    }
+  }, [isLoggedIn]);
 
   useEffect(() => {
     // For demo purposes, we'll ask user for email to show their orders
@@ -120,7 +137,7 @@ const OrdersPage: React.FC = () => {
           color: '#666'
         }}
       >
-        Loading your orders...
+        Caricamento ordini...
       </motion.div>
     );
   }
@@ -142,10 +159,10 @@ const OrdersPage: React.FC = () => {
       >
         <div style={{ fontSize: '60px', marginBottom: '20px' }}>📧</div>
         <h2 style={{ fontSize: '24px', marginBottom: '10px', color: '#333' }}>
-          Email Required
+          Email Richiesta
         </h2>
         <p style={{ color: '#666', fontSize: '16px', marginBottom: '20px' }}>
-          Please provide your email to view your orders
+          Inserisci la tua email per vedere i tuoi ordini
         </p>
         <div style={{ width: '100%', maxWidth: '300px' }}>
           <input
@@ -205,10 +222,10 @@ const OrdersPage: React.FC = () => {
       >
         <div style={{ fontSize: '80px', marginBottom: '20px' }}>📦</div>
         <h2 style={{ fontSize: '24px', marginBottom: '10px', color: '#333' }}>
-          No Orders Yet
+          Nessun Ordine
         </h2>
         <p style={{ color: '#666', fontSize: '16px' }}>
-          You haven't placed any orders yet. Start shopping!
+          Non hai ancora effettuato ordini. Inizia a ordinare!
         </p>
       </motion.div>
     );
@@ -231,7 +248,7 @@ const OrdersPage: React.FC = () => {
           marginBottom: '30px'
         }}
       >
-        Your Orders 📦
+        I tuoi Ordini 📦
       </motion.h2>
 
       <div style={{ display: 'grid', gap: '20px' }}>
@@ -240,9 +257,9 @@ const OrdersPage: React.FC = () => {
           return (
             <motion.div
               key={order.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.1 }}
+              initial={{ opacity: 0, x: -20, scale: 0.95 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              transition={{ delay: index * 0.05, type: 'spring', stiffness: 40, damping: 15 }}
               whileHover={{ scale: 1.02 }}
               onClick={() => setSelectedOrder(selectedOrder === order.id ? null : order.id)}
               style={{
@@ -329,6 +346,20 @@ const OrdersPage: React.FC = () => {
                   <span style={{ fontSize: '14px', color: '#666' }}>
                     {order.customer_phone}
                   </span>
+                </div>
+              )}
+
+              {/* Live Tracking Map for orders in delivery */}
+              {((order as any).delivery_status === 'in_delivery' || (order as any).delivery_status === 'assigned') && (order as any).rider_id && (
+                <div style={{ marginBottom: '15px' }} onClick={(e) => e.stopPropagation()}>
+                  <OrderTrackingMap
+                    orderId={order.id}
+                    riderId={(order as any).rider_id}
+                    customerAddress={order.customer_address || ''}
+                    customerLat={(order as any).customer_lat}
+                    customerLng={(order as any).customer_lng}
+                    onDelivered={() => loadOrders(customerEmail)}
+                  />
                 </div>
               )}
 

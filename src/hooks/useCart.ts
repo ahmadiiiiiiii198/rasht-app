@@ -16,6 +16,9 @@ export interface CartItem {
   extras?: Extra[];
   beverages?: Extra[];
   specialRequests?: string;
+  deliveryOnly?: boolean; // If true, this item can only be delivered (not pickup)
+  pointsCost?: number; // Cost in loyalty points
+  isLoyaltyReward?: boolean; // True if this item is a loyalty reward
 }
 
 export const useCart = () => {
@@ -24,7 +27,7 @@ export const useCart = () => {
   // Load cart from localStorage on mount and listen for changes
   useEffect(() => {
     const loadCart = () => {
-      const savedCart = localStorage.getItem('efes_cart');
+      const savedCart = localStorage.getItem('timeoutpizza_cart');
       console.log('📦 loadCart called, localStorage has:', savedCart ? JSON.parse(savedCart).length + ' items' : '0 items');
       if (savedCart) {
         try {
@@ -52,7 +55,7 @@ export const useCart = () => {
 
     // Also listen for storage events (from other tabs)
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'efes_cart') {
+      if (e.key === 'timeoutpizza_cart') {
         loadCart();
       }
     };
@@ -68,7 +71,7 @@ export const useCart = () => {
   // Helper to save cart
   const saveCart = (newItems: CartItem[]) => {
     setItems(newItems);
-    localStorage.setItem('efes_cart', JSON.stringify(newItems));
+    localStorage.setItem('timeoutpizza_cart', JSON.stringify(newItems));
     window.dispatchEvent(new Event('cartUpdated'));
   };
 
@@ -102,7 +105,7 @@ export const useCart = () => {
 
   const clearCart = () => {
     setItems([]);
-    localStorage.removeItem('efes_cart');
+    localStorage.removeItem('timeoutpizza_cart');
     window.dispatchEvent(new Event('cartUpdated'));
   };
 
@@ -110,22 +113,35 @@ export const useCart = () => {
     return items.reduce((sum, item) => sum + item.quantity, 0);
   };
 
+  // Helper to safely parse price (handles both string and number)
+  const parsePrice = (price: string | number | undefined | null): number => {
+    if (price === null || price === undefined) return 0;
+    if (typeof price === 'string') {
+      const parsed = parseFloat(price);
+      return isNaN(parsed) ? 0 : parsed;
+    }
+    return isNaN(price) ? 0 : price;
+  };
+
   const getTotalPrice = () => {
     return items.reduce((sum, item) => {
-      let itemTotal = item.price * item.quantity;
+      const itemPrice = parsePrice(item.price);
+      let itemTotal = itemPrice * item.quantity;
 
       // Add extras cost
       if (item.extras && item.extras.length > 0) {
-        itemTotal += item.extras.reduce((extrasSum, extra) =>
-          extrasSum + (extra.price * extra.quantity), 0
-        );
+        itemTotal += item.extras.reduce((extrasSum, extra) => {
+          const extraPrice = parsePrice(extra.price);
+          return extrasSum + (extraPrice * extra.quantity);
+        }, 0);
       }
 
       // Add beverages cost
       if (item.beverages && item.beverages.length > 0) {
-        itemTotal += item.beverages.reduce((beveragesSum, beverage) =>
-          beveragesSum + (beverage.price * beverage.quantity), 0
-        );
+        itemTotal += item.beverages.reduce((beveragesSum, beverage) => {
+          const beveragePrice = parsePrice(beverage.price);
+          return beveragesSum + (beveragePrice * beverage.quantity);
+        }, 0);
       }
 
       return sum + itemTotal;

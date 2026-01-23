@@ -1,15 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Home,
-  Menu,
+  Phone,
+  Utensils,
   ShoppingCart,
+  ClipboardList,
   User,
-  Gift,
+  Tag,
   Star,
   ArrowLeft
 } from 'lucide-react';
 import './App.css';
+import NotificationListener from './components/NotificationListener';
+import BusinessHoursProvider from './contexts/BusinessHoursContext';
+import { AuthProvider } from './contexts/AuthContext';
+import FCMService from './services/FCMService';
+
 
 // Page Components
 import MenuPage from './pages/MenuPage';
@@ -17,6 +23,8 @@ import OrdersPage from './pages/OrdersPage';
 import ProfilePage from './pages/ProfilePage';
 import OffersPage from './pages/OffersPage';
 import LoyaltyPage from './pages/LoyaltyPage';
+import BasketballLogo from './components/BasketballLogo';
+
 
 interface NavButton {
   id: string;
@@ -32,56 +40,56 @@ const navButtons: NavButton[] = [
   {
     id: 'contatti',
     label: 'Contatti',
-    icon: <Home size={24} />,
-    color: '#d4af37',
+    icon: <Phone size={24} />,
+    color: '#c9a45c', // Persian Gold
     angle: 0,
     component: React.lazy(() => import('./pages/ContattiPage'))
   },
   {
     id: 'menu',
     label: 'Menu',
-    icon: <Menu size={24} />,
-    color: '#d4af37',
+    icon: <Utensils size={24} />,
+    color: '#c9a45c', // Persian Gold
     angle: 51.43,
     component: MenuPage
   },
   {
     id: 'cart',
-    label: 'Cart',
+    label: 'Carrello',
     icon: <ShoppingCart size={24} />,
-    color: '#d4af37',
+    color: '#c9a45c', // Persian Gold
     angle: 102.86,
     component: React.lazy(() => import('./pages/CartPage'))
   },
   {
     id: 'orders',
-    label: 'Orders',
-    icon: <User size={24} />,
-    color: '#d4af37',
+    label: 'Ordini',
+    icon: <ClipboardList size={24} />,
+    color: '#c9a45c', // Persian Gold
     angle: 154.29,
     component: OrdersPage
   },
   {
     id: 'profile',
-    label: 'Profile',
+    label: 'Profilo',
     icon: <User size={24} />,
-    color: '#d4af37',
+    color: '#c9a45c', // Persian Gold
     angle: 205.71,
     component: ProfilePage
   },
   {
     id: 'offers',
-    label: 'Offers',
-    icon: <Gift size={24} />,
-    color: '#d4af37',
+    label: 'Offerte',
+    icon: <Tag size={24} />,
+    color: '#c9a45c', // Persian Gold
     angle: 257.14,
     component: OffersPage
   },
   {
     id: 'loyalty',
-    label: 'Loyalty',
+    label: 'Fedeltà',
     icon: <Star size={24} />,
-    color: '#d4af37',
+    color: '#c9a45c', // Persian Gold
     angle: 308.57,
     component: LoyaltyPage
   }
@@ -99,6 +107,17 @@ function App() {
   const [navButtonSize, setNavButtonSize] = useState(buttonBaseSize);
   const [isMobile, setIsMobile] = useState(false);
 
+  // Initialize FCM for push notifications
+  useEffect(() => {
+    const initFCM = async () => {
+      if (FCMService.isAvailable()) {
+        console.log('🔔 Initializing FCM for customer app...');
+        await FCMService.initialize();
+      }
+    };
+    initFCM();
+  }, []);
+
   useEffect(() => {
     const computeLayoutValues = () => {
       if (typeof window === 'undefined') {
@@ -114,26 +133,43 @@ function App() {
       const mobile = width <= 768;
       setIsMobile(mobile);
 
-      const buttonSize = width <= 400 ? 58 : mobile ? 68 : buttonBaseSize;
+      // Button sizes slightly increased per user request
+      const buttonSize = width <= 400 ? 60 : mobile ? 72 : 90;
       setNavButtonSize(buttonSize);
 
       const minCircleRadius = buttonSize; // keep centre content reasonable
       const maxInitialCircle = Math.min(width - 60, 350) / 2;
       const baseCircleRadius = Math.max(minCircleRadius, maxInitialCircle);
 
-      const minGap = width <= 400 ? 8 : mobile ? 10 : 12;
+      // Safer margins to prevent cut-off
+      const margin = 25;
 
-      const maxRadiusX = (width - buttonSize - 20) / 2;
-      const maxRadiusY = (height - buttonSize - 20) / 2;
-      const maxAvailableRadius = Math.max(buttonSize / 2 + minGap, Math.min(maxRadiusX, maxRadiusY));
+      // Calculate max possible radius that fits in viewport with margins
+      // Subtract (buttonSize/2 + margin) from center to edge
+      const maxRadiusX = (width / 2) - (buttonSize / 2) - margin;
+      const maxRadiusY = (height / 2) - (buttonSize / 2) - margin;
 
-      const maxCircleRadius = Math.max(buttonSize * 0.5, maxAvailableRadius - (buttonSize / 2 + minGap));
-      const finalCircleRadius = Math.max(buttonSize * 1.2, Math.min(baseCircleRadius, maxCircleRadius));
+      // Use the smaller dimension to constrain the circle (usually width on mobile)
+      const safeMaxRadius = Math.min(maxRadiusX, maxRadiusY);
+
+      // Determine center circle size
+      // We want buttons to be ~25px away from center circle (increased from 15)
+      const gap = 25;
+
+      let finalCircleRadius = Math.min(baseCircleRadius, safeMaxRadius - buttonSize - gap);
+
+      // Ensure center logo isn't too small
+      finalCircleRadius = Math.max(finalCircleRadius, buttonSize * 1.1);
 
       setCollapsedSize(finalCircleRadius * 2);
 
-      const finalRadius = finalCircleRadius + buttonSize / 2 + minGap;
-      setNavRadius(finalRadius);
+      // Set nav radius relative to the confirmed safe center circle
+      const finalRadius = finalCircleRadius + (buttonSize / 2) + gap;
+
+      // Double check it fits
+      const constrainedRadius = Math.min(finalRadius, safeMaxRadius);
+
+      setNavRadius(constrainedRadius);
 
       // On mobile, expand to fill the entire screen
       if (mobile) {
@@ -178,180 +214,174 @@ function App() {
   const showRootNav = !isExpanded;
 
   return (
-    <div className="app">
-      {/* Background with animated gradient */}
-      <motion.div
-        className="background"
-        animate={{
-          background: isExpanded
-            ? `linear-gradient(135deg, ${activeButtonData?.color}20, ${activeButtonData?.color}10)`
-            : 'linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #d4af37 100%)'
-        }}
-        transition={{ duration: 0.8 }}
-      />
+    <BusinessHoursProvider>
+      <AuthProvider>
+        <NotificationListener />
+        <div className="app">
+          {/* Clean Static Background */}
+          <div className="background-static">
+            {/* Static Pizza Images */}
+            <img src="/pizza-1.png" alt="" className="bg-pizza pizza-top-left" />
+            <img src="/pizza-2.png" alt="" className="bg-pizza pizza-bottom-right" />
+            <img src="/pizza-3.png" alt="" className="bg-pizza pizza-bottom-left" />
+          </div>
 
-      {/* Central Circle Container */}
-      <motion.div
-        className="central-circle"
-        initial={{
-          width: collapsedSize,
-          height: collapsedSize
-        }}
-        animate={{
-          width: isExpanded ? expandedWidth : collapsedSize,
-          height: isExpanded ? expandedHeight : collapsedSize,
-          borderRadius: isExpanded ? (isMobile ? '0px' : '20px') : '50%'
-        }}
-        transition={{
-          type: "spring",
-          stiffness: 100,
-          damping: 20,
-          duration: 0.8
-        }}
-      >
-        <AnimatePresence mode="wait">
-          {!isExpanded && (
-            <motion.div
-              key="logo"
-              className="logo-container"
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0 }}
-              transition={{ duration: 0.4 }}
-              style={{
-                width: '100%',
-                height: '100%',
-                borderRadius: '50%',
-                backgroundImage: 'url(/logo.jpg)',
-                backgroundSize: '65%',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat'
-              }}
-            />
-          )}
-        </AnimatePresence>
-
-        {/* Page Content when expanded */}
-        <AnimatePresence>
-          {isExpanded && ActiveComponent && (
-            <motion.div
-              className="page-content"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1, width: '100%', height: '100%' }} // Added width and height
-              exit={{ opacity: 0, scale: 0.8 }}
-              transition={{ delay: 0.3, duration: 0.5 }}
-            >
-              <motion.button
-                className="close-button"
-                onClick={handleClose}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <ArrowLeft size={24} />
-              </motion.button>
-              {activeButton === 'menu' ? (
-                <MenuPage onNavigate={handleNavigate} />
-              ) : (
-                <ActiveComponent />
+          {/* Central Circle Container */}
+          <motion.div
+            className="central-circle"
+            initial={{
+              width: collapsedSize,
+              height: collapsedSize
+            }}
+            animate={{
+              width: isExpanded ? expandedWidth : collapsedSize,
+              height: isExpanded ? expandedHeight : collapsedSize,
+              borderRadius: isExpanded ? (isMobile ? '0px' : '20px') : '50%'
+            }}
+            transition={{
+              type: "spring",
+              stiffness: 350,
+              damping: 30,
+              mass: 0.8
+            }}
+          >
+            <AnimatePresence mode="wait">
+              {!isExpanded && (
+                <BasketballLogo className="logo-container" />
               )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
+            </AnimatePresence>
 
-      {/* Navigation Buttons */}
-      <AnimatePresence>
-        {showRootNav && (
-          <div className="nav-container" style={{ width: navContainerSize, height: navContainerSize }}>
-            {navButtons.map((button, index) => {
-              const angleInRadians = (button.angle - 90) * (Math.PI / 180)
-              const offsetX = Math.cos(angleInRadians) * navRadius
-              const offsetY = Math.sin(angleInRadians) * navRadius
-
-              const buttonStyle: React.CSSProperties & { '--button-color': string } = {
-                '--button-color': button.color,
-                width: navButtonSize,
-                height: navButtonSize
-              }
-
-              return (
-                <div
-                  key={button.id}
-                  className="nav-button-wrapper"
-                  style={{
-                    transform: `translate(calc(-50% + ${offsetX}px), calc(-50% + ${offsetY}px))`
+            {/* Page Content when expanded */}
+            <AnimatePresence>
+              {isExpanded && ActiveComponent && (
+                <motion.div
+                  className={`page-content ${activeButton === 'menu' || activeButton === 'offers' ? 'no-padding' : ''}`}
+                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0, width: '100%', height: '100%' }} // Added width and height
+                  exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 450,
+                    damping: 35,
+                    mass: 0.6
                   }}
                 >
                   <motion.button
-                    className={`nav-button nav-button-${index}`}
-                    style={buttonStyle}
-                    initial={{
-                      opacity: 0,
-                      scale: 0
-                    }}
-                    animate={{
-                      opacity: 1,
-                      scale: 1
-                    }}
-                    exit={{
-                      opacity: 0,
-                      scale: 0
-                    }}
-                    transition={{
-                      delay: index * 0.1,
-                      type: 'spring',
-                      stiffness: 200,
-                      damping: 15
-                    }}
-                    whileHover={{
-                      scale: 1.2,
-                      boxShadow: `0 10px 30px ${button.color}40`
-                    }}
-                    whileTap={{
-                      scale: 0.9
-                    }}
-                    onClick={() => handleRootButtonClick(button.id)}
+                    className="close-button"
+                    onClick={handleClose}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
                   >
-                    <motion.div
-                      className="button-content"
-                      whileHover={{ rotate: -10 }}
-                    >
-                      {button.icon}
-                      <span className="button-label">{button.label}</span>
-                    </motion.div>
+                    <ArrowLeft size={24} />
                   </motion.button>
-                </div>
-              )
-            })}
-          </div>
-        )}
-      </AnimatePresence>
+                  {activeButton === 'menu' ? (
+                    <MenuPage onNavigate={handleNavigate} />
+                  ) : activeButton === 'offers' ? (
+                    <OffersPage onNavigate={handleNavigate} />
+                  ) : activeButton === 'loyalty' ? (
+                    <LoyaltyPage onNavigate={handleNavigate} />
+                  ) : (
+                    <ActiveComponent />
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
 
-      {/* Floating particles animation */}
-      <div className="particles">
-        {[...Array(20)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="particle"
-            animate={{
-              y: [0, -100, 0],
-              x: [0, Math.random() * 100 - 50, 0],
-              opacity: [0, 1, 0]
-            }}
-            transition={{
-              duration: 3 + Math.random() * 2,
-              repeat: Infinity,
-              delay: Math.random() * 2
-            }}
-            style={{
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 2}s`
-            }}
-          />
-        ))}
-      </div>
-    </div>
+          {/* Navigation Buttons */}
+          <AnimatePresence>
+            {showRootNav && (
+              <div className="nav-container" style={{ width: navContainerSize, height: navContainerSize }}>
+                {navButtons.map((button, index) => {
+                  const angleInRadians = (button.angle - 90) * (Math.PI / 180)
+                  const offsetX = Math.cos(angleInRadians) * navRadius
+                  const offsetY = Math.sin(angleInRadians) * navRadius
+
+                  const buttonStyle: React.CSSProperties & { '--button-color': string } = {
+                    '--button-color': button.color,
+                    width: navButtonSize,
+                    height: navButtonSize
+                  }
+
+                  return (
+                    <div
+                      key={button.id}
+                      className="nav-button-wrapper"
+                      style={{
+                        transform: `translate(calc(-50% + ${offsetX}px), calc(-50% + ${offsetY}px))`
+                      }}
+                    >
+                      <motion.button
+                        className={`nav-button nav-button-${index}`}
+                        style={{
+                          ...buttonStyle,
+                          background: `linear-gradient(145deg, #0d3d2e 0%, #082920 100%)`,
+                          boxShadow: '0 8px 25px rgba(0,0,0,0.4), 0 0 20px rgba(201, 164, 92, 0.2), inset 0 2px 4px rgba(201, 164, 92, 0.1)',
+                          border: '2px solid #c9a45c',
+                          borderRadius: '50%',
+                          color: '#c9a45c',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          position: 'relative'
+                        }}
+                        initial={{ opacity: 0, scale: 0.5, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
+                        transition={{
+                          delay: index * 0.05,
+                          type: 'spring',
+                          stiffness: 400,
+                          damping: 25
+                        }}
+                        whileHover={{
+                          scale: 1.15,
+                          boxShadow: `0 15px 35px rgba(0,0,0,0.5), 0 0 30px rgba(201, 164, 92, 0.4)`
+                        }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => handleRootButtonClick(button.id)}
+                      >
+                        <motion.div
+                          className="button-content"
+                          whileHover={{ rotate: [-2, 2, -2, 0] }}
+                          transition={{ duration: 0.4 }}
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '100%',
+                            height: '100%',
+                            zIndex: 2,
+                            gap: '4px'
+                          }}
+                        >
+                          <span style={{ color: '#c9a45c' }}>{button.icon}</span>
+                          <span className="button-label" style={{
+                            fontSize: '9px',
+                            fontWeight: '600',
+                            textTransform: 'uppercase',
+                            color: '#c9a45c',
+                            fontFamily: '"Cinzel", "Cormorant Garamond", serif',
+                            letterSpacing: '1px',
+                            textShadow: '0 1px 3px rgba(0,0,0,0.5)'
+                          }}>{button.label}</span>
+                        </motion.div>
+                      </motion.button>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </AnimatePresence>
+
+        </div>
+      </AuthProvider>
+    </BusinessHoursProvider >
   );
 }
+
+
 
 export default App;
