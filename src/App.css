@@ -374,16 +374,40 @@ body {
 }
 
 /* Headers */
+
+/* ============================================
+   RASHTI ORNAMENTAL PATTERNS
+   ============================================ */
+
+/* 1. Header Ornamental Border */
 .rashti-header-container {
   display: flex;
   flex-direction: column;
   gap: 12px;
   padding: 20px;
-  /* Glassmorph header */
-  background: rgba(13, 61, 46, 0.85);
+  background: rgba(13, 61, 46, 0.9);
   backdrop-filter: blur(10px);
   z-index: 50;
-  border-bottom: 1px solid rgba(201, 164, 92, 0.3);
+  border-bottom: 2px solid var(--persian-gold);
+  /* Decorative Double Border with a slight pattern hint */
+  border-image: linear-gradient(to right, transparent, var(--persian-gold), transparent) 1;
+  position: relative;
+}
+
+/* Add a subtle floral/geometric repeating pattern at the bottom of header */
+.rashti-header-container::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  left: 0;
+  width: 100%;
+  height: 6px;
+  background-image: repeating-linear-gradient(45deg,
+      var(--persian-gold),
+      var(--persian-gold) 2px,
+      transparent 2px,
+      transparent 6px);
+  opacity: 0.6;
 }
 
 .rashti-title {
@@ -393,14 +417,14 @@ body {
   text-transform: uppercase;
   letter-spacing: 2px;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  position: relative;
+  display: inline-block;
 }
 
-/* Components: Cards */
+/* 2. Card Ornaments */
 .rashti-card {
   background: rgba(13, 61, 46, 0.9);
-  /* Emerald Card */
-  border: 1px solid rgba(201, 164, 92, 0.3);
-  /* Gold Border */
+  border: 1px solid rgba(201, 164, 92, 0.4);
   border-radius: 20px;
   padding: 16px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
@@ -411,10 +435,60 @@ body {
   backdrop-filter: blur(5px);
 }
 
+/* Ornamental Corners using CSS gradients */
+.rashti-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 40px;
+  height: 40px;
+  background:
+    linear-gradient(135deg, transparent 50%, var(--persian-gold) 50%),
+    linear-gradient(to bottom, var(--persian-gold) 2px, transparent 2px),
+    linear-gradient(to left, var(--persian-gold) 2px, transparent 2px);
+  background-size: 100% 100%, 100% 100%, 100% 100%;
+  opacity: 0.2;
+  border-top-right-radius: 20px;
+  pointer-events: none;
+}
+
+.rashti-card::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 40px;
+  height: 40px;
+  background:
+    linear-gradient(315deg, transparent 50%, var(--persian-gold) 50%),
+    linear-gradient(to top, var(--persian-gold) 2px, transparent 2px),
+    linear-gradient(to right, var(--persian-gold) 2px, transparent 2px);
+  background-size: 100% 100%, 100% 100%, 100% 100%;
+  opacity: 0.2;
+  border-bottom-left-radius: 20px;
+  pointer-events: none;
+}
+
+
+/* 3. Light Card Variations */
 .rashti-card-light {
   background: #fffef5;
-  border: 1px solid transparent;
+  border: 1px solid rgba(201, 164, 92, 0.2);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  position: relative;
+}
+
+.rashti-card-light::before {
+  content: "";
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  border: 1px dashed rgba(201, 164, 92, 0.3);
+  border-radius: 12px;
+  pointer-events: none;
 }
 
 /* Components: Inputs */
@@ -454,6 +528,9 @@ body {
   cursor: pointer;
   transition: all 0.3s ease;
   backdrop-filter: blur(4px);
+  /* Textura subtile overlay */
+  background-image: linear-gradient(45deg, rgba(201, 164, 92, 0.05) 25%, transparent 25%, transparent 50%, rgba(201, 164, 92, 0.05) 50%, rgba(201, 164, 92, 0.05) 75%, transparent 75%, transparent);
+  background-size: 4px 4px;
 }
 
 .rashti-chip.active {
@@ -462,13 +539,16 @@ body {
   font-weight: 800;
   box-shadow: 0 0 15px rgba(201, 164, 92, 0.4);
   border-color: var(--persian-gold);
+  /* Unique "Termeh" shape hint - inverted border radius or similar? No, keeping shape but adding detail */
+  border: 2px solid #fff;
 }
 
 /* Components: Buttons */
 .rashti-btn-primary {
   background: linear-gradient(135deg, var(--persian-gold) 0%, #b89146 100%);
   color: var(--persian-emerald-dark);
-  border: none;
+  border: 1px solid #fff;
+  /* Added contrast border */
   border-radius: 20px;
   padding: 0 24px;
   height: 48px;
@@ -483,6 +563,21 @@ body {
   align-items: center;
   gap: 8px;
   justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Button Texture - Rashti Stitching Style */
+.rashti-btn-primary::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  border: 1px dashed rgba(13, 61, 46, 0.3);
+  border-radius: 18px;
+  pointer-events: none;
 }
 
 .rashti-btn-primary:hover {
@@ -501,7 +596,7 @@ body {
   border-radius: 50%;
   background: linear-gradient(135deg, var(--persian-gold) 0%, #b89146 100%);
   color: var(--persian-emerald-dark);
-  border: none;
+  border: 2px solid #fff;
   display: flex;
   align-items: center;
   justify-content: center;
