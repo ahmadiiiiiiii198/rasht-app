@@ -230,12 +230,15 @@ function App() {
             className="central-circle"
             initial={{
               width: collapsedSize,
-              height: collapsedSize
+              height: collapsedSize,
+              borderRadius: '50%',
+              borderWidth: '3px'
             }}
             animate={{
-              width: isExpanded ? expandedWidth : collapsedSize,
-              height: isExpanded ? expandedHeight : collapsedSize,
-              borderRadius: isExpanded ? (isMobile ? '0px' : '20px') : '50%'
+              width: isExpanded ? (isMobile ? '100vw' : expandedWidth) : collapsedSize,
+              height: isExpanded ? (isMobile ? '100vh' : expandedHeight) : collapsedSize,
+              borderRadius: isExpanded ? (isMobile ? '0px' : '20px') : '50%',
+              borderWidth: isExpanded && isMobile ? '0px' : '3px'
             }}
             transition={{
               type: "spring",
