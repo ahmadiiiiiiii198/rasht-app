@@ -281,11 +281,11 @@ const MenuPage: React.FC<MenuPageProps> = ({ onNavigate }) => {
               transition={{ duration: 0.6, type: "spring" }}
               style={{
                 position: 'absolute',
-                top: 0, left: 0, right: 0, bottom: '40vh', // Takes up top 60%
+                top: 0, left: 0, right: 0, bottom: '30vh', // Takes up top 70%
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                paddingTop: '60px',
+                paddingTop: '160px', // Push down below simpler header
               }}
             >
               <img
@@ -316,7 +316,7 @@ const MenuPage: React.FC<MenuPageProps> = ({ onNavigate }) => {
         overflowY: 'auto',
         scrollSnapType: 'y mandatory',
         height: '100%',
-        marginTop: '50vh', // Push list down to reveal food
+        marginTop: '60vh', // Push list down to reveal food
         position: 'relative',
         zIndex: 10,
         background: 'linear-gradient(180deg, rgba(8, 41, 32, 0.95) 0%, #051a14 100%)',

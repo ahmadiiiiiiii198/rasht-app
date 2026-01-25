@@ -354,9 +354,9 @@ const OffersPage: React.FC<OffersPageProps> = ({ onNavigate }) => {
               transition={{ duration: 0.7 }}
               style={{
                 position: 'absolute',
-                top: 0, left: 0, right: 0, bottom: '40vh',
+                top: 0, left: 0, right: 0, bottom: '30vh',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                paddingTop: '60px',
+                paddingTop: '160px',
               }}
             >
               <img
@@ -377,7 +377,7 @@ const OffersPage: React.FC<OffersPageProps> = ({ onNavigate }) => {
       <div style={{
         flex: 1,
         overflowY: 'auto',
-        marginTop: '50vh',
+        marginTop: '60vh',
         position: 'relative',
         zIndex: 10,
         background: 'linear-gradient(180deg, rgba(8, 41, 32, 0.95) 0%, #051a14 100%)',
