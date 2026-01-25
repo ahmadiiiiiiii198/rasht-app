@@ -302,8 +302,18 @@ const OffersPage: React.FC<OffersPageProps> = ({ onNavigate }) => {
     <div className="rashti-page-dark">
 
       {/* 1. Header & Categories */}
-      <div className="rashti-header-container" style={{ position: 'absolute', top: 0, left: 0, right: 0 }}>
-        <h2 className="rashti-title" style={{ fontSize: '24px', margin: '0 0 10px 0', textAlign: 'center' }}>
+      <div className="rashti-header-container" style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        paddingTop: 'calc(60px + env(safe-area-inset-top))',
+        paddingLeft: '80px',
+        paddingRight: '20px',
+        paddingBottom: '20px',
+        boxSizing: 'border-box'
+      }}>
+        <h2 className="rashti-title" style={{ fontSize: '24px', margin: '0 0 10px 0', textAlign: 'left' }}>
           Offerte Speciali
         </h2>
 

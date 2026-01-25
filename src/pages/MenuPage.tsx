@@ -209,10 +209,20 @@ const MenuPage: React.FC<MenuPageProps> = ({ onNavigate }) => {
     <div className="rashti-page-dark">
 
       {/* 1. Sticky Header with Search + Categories */}
-      <div className="rashti-header-container" style={{ position: 'absolute', top: 0, left: 0, right: 0 }}>
+      <div className="rashti-header-container" style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        paddingTop: 'calc(60px + env(safe-area-inset-top))', // Clear height for Back Button + Status Bar
+        paddingLeft: '80px', // Clear width for Back Button
+        paddingRight: '20px',
+        paddingBottom: '20px',
+        boxSizing: 'border-box'
+      }}>
 
         {/* Search Bar */}
-        <div style={{ position: 'relative', width: '100%', maxWidth: '300px' }}>
+        <div style={{ position: 'relative', width: '100%' }}>
           <Search size={18} className="text-gold" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
           <input
             type="text"

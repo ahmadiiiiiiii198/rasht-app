@@ -215,7 +215,7 @@ body {
   width: 100%;
   height: 100%;
   padding: var(--page-padding);
-  padding-top: calc(var(--page-padding) + var(--safe-area-top));
+  padding-top: calc(80px + var(--safe-area-top));
   padding-bottom: calc(var(--page-padding) + var(--safe-area-bottom));
   position: relative;
   overflow-y: auto;
