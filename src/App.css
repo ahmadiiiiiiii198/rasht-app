@@ -370,13 +370,25 @@ body {
   right: 0;
   bottom: 0;
   background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c9a45c' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  /* Geometric Pattern Overlay reduced, kept for texture */
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('/rashti-texture.png');
+  background-size: 300px;
+  opacity: 0.05;
   pointer-events: none;
+  z-index: 1;
 }
 
 /* Headers */
 
+
 /* ============================================
-   RASHTI ORNAMENTAL PATTERNS
+   RASHTI ORNAMENTAL PATTERNS & ASSETS
    ============================================ */
 
 /* 1. Header Ornamental Border */
@@ -385,16 +397,14 @@ body {
   flex-direction: column;
   gap: 12px;
   padding: 20px;
-  background: rgba(13, 61, 46, 0.9);
+  background: rgba(13, 61, 46, 0.95);
   backdrop-filter: blur(10px);
   z-index: 50;
   border-bottom: 2px solid var(--persian-gold);
-  /* Decorative Double Border with a slight pattern hint */
   border-image: linear-gradient(to right, transparent, var(--persian-gold), transparent) 1;
   position: relative;
 }
 
-/* Add a subtle floral/geometric repeating pattern at the bottom of header */
 .rashti-header-container::after {
   content: "";
   position: absolute;
@@ -402,12 +412,11 @@ body {
   left: 0;
   width: 100%;
   height: 6px;
-  background-image: repeating-linear-gradient(45deg,
-      var(--persian-gold),
-      var(--persian-gold) 2px,
-      transparent 2px,
-      transparent 6px);
-  opacity: 0.6;
+  background-image: url('/rashti-texture.png');
+  /* Use texture for border line */
+  background-size: 100px;
+  opacity: 0.8;
+  filter: sepia(100%) hue-rotate(10deg) saturate(300%);
 }
 
 .rashti-title {
@@ -421,13 +430,14 @@ body {
   display: inline-block;
 }
 
-/* 2. Card Ornaments */
+/* 3. Card Ornaments */
 .rashti-card {
   background: rgba(13, 61, 46, 0.9);
   border: 1px solid rgba(201, 164, 92, 0.4);
-  border-radius: 20px;
+  border-radius: 16px;
+  /* Slightly sharper for traditional look */
   padding: 16px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
   display: flex;
   flex-direction: column;
   position: relative;
@@ -435,43 +445,39 @@ body {
   backdrop-filter: blur(5px);
 }
 
-/* Ornamental Corners using CSS gradients */
+/* Corner flourishes using the generated image */
 .rashti-card::before {
   content: "";
   position: absolute;
-  top: 0;
-  right: 0;
-  width: 40px;
-  height: 40px;
-  background:
-    linear-gradient(135deg, transparent 50%, var(--persian-gold) 50%),
-    linear-gradient(to bottom, var(--persian-gold) 2px, transparent 2px),
-    linear-gradient(to left, var(--persian-gold) 2px, transparent 2px);
-  background-size: 100% 100%, 100% 100%, 100% 100%;
-  opacity: 0.2;
-  border-top-right-radius: 20px;
+  top: -10px;
+  right: -10px;
+  width: 60px;
+  height: 60px;
+  background-image: url('/rashti-corner.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  transform: rotate(0deg);
+  opacity: 0.3;
   pointer-events: none;
 }
 
 .rashti-card::after {
   content: "";
   position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 40px;
-  height: 40px;
-  background:
-    linear-gradient(315deg, transparent 50%, var(--persian-gold) 50%),
-    linear-gradient(to top, var(--persian-gold) 2px, transparent 2px),
-    linear-gradient(to right, var(--persian-gold) 2px, transparent 2px);
-  background-size: 100% 100%, 100% 100%, 100% 100%;
-  opacity: 0.2;
-  border-bottom-left-radius: 20px;
+  bottom: -10px;
+  left: -10px;
+  width: 60px;
+  height: 60px;
+  background-image: url('/rashti-corner.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  transform: rotate(180deg);
+  opacity: 0.3;
   pointer-events: none;
 }
 
 
-/* 3. Light Card Variations */
+/* 4. Light Card Variations */
 .rashti-card-light {
   background: #fffef5;
   border: 1px solid rgba(201, 164, 92, 0.2);
@@ -543,28 +549,37 @@ body {
   border: 2px solid #fff;
 }
 
-/* Components: Buttons */
+/* Components: Buttons (Creative & Textured) */
 .rashti-btn-primary {
+  /* Rich Gradient Base */
   background: linear-gradient(135deg, var(--persian-gold) 0%, #b89146 100%);
-  color: var(--persian-emerald-dark);
-  border: 1px solid #fff;
-  /* Added contrast border */
-  border-radius: 20px;
+
+  /* Overlay Texture */
+  background-image: url('/rashti-texture.png'), linear-gradient(135deg, var(--persian-gold) 0%, #b89146 100%);
+  background-blend-mode: overlay;
+  background-size: 100px, cover;
+
+  color: #051a14;
+  /* Darker clean text for contrast */
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px 24px 12px 24px;
+  /* Creative Organic Shape */
   padding: 0 24px;
-  height: 48px;
+  height: 52px;
   font-family: 'Cinzel', serif;
-  font-weight: 700;
-  font-size: 14px;
+  font-weight: 800;
+  font-size: 15px;
   letter-spacing: 1px;
   cursor: pointer;
-  box-shadow: 0 4px 15px rgba(201, 164, 92, 0.3);
-  transition: all 0.2s ease;
+  box-shadow: 0 8px 20px rgba(13, 61, 46, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
   gap: 8px;
   justify-content: center;
   position: relative;
   overflow: hidden;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 /* Button Texture - Rashti Stitching Style */
@@ -581,9 +596,11 @@ body {
 }
 
 .rashti-btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(201, 164, 92, 0.5);
-  filter: brightness(1.1);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 12px 25px rgba(13, 61, 46, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.6);
+  filter: brightness(1.15);
+  border-radius: 16px;
+  /* Morphs slightly on hover */
 }
 
 .rashti-btn-primary:active {
@@ -591,22 +608,29 @@ body {
 }
 
 .rashti-btn-icon {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--persian-gold) 0%, #b89146 100%);
-  color: var(--persian-emerald-dark);
-  border: 2px solid #fff;
+  width: 54px;
+  height: 54px;
+  border-radius: 20px;
+  /* Squircle */
+  /* Texture for Icon Button too */
+  background-image: url('/rashti-texture.png'), linear-gradient(135deg, var(--persian-gold) 0%, #b89146 100%);
+  background-blend-mode: overlay;
+  background-size: 60px, cover;
+
+  color: #051a14;
+  border: 2px solid rgba(255, 255, 255, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   cursor: pointer;
 }
 
 .rashti-btn-icon:hover {
-  transform: scale(1.1) rotate(5deg);
+  transform: rotate(10deg) scale(1.1);
+  border-radius: 50%;
+  /* Morphs to circle on hover */
 }
 
 /* Typography Helpers */
