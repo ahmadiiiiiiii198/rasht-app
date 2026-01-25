@@ -1,12 +1,60 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Gift, Copy, CheckCircle, Tag, QrCode, ChevronLeft, Bike, Store, ShoppingCart } from 'lucide-react';
-import { supabase, Offer, OfferCategory, ExtraCategory, ExtraProduct } from '../lib/supabase';
-import JerseyImage from '../components/JerseyImage';
-import QRCode from 'react-qr-code';
-import AuthModal from '../components/AuthModal';
-import { useCart, CartItem } from '../hooks/useCart';
+import { Tag, Clock, ChevronRight, Copy, Check, ShoppingCart, X, Plus, Minus, Info } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import { useCart } from '../hooks/useCart';
 import { useAuth } from '../contexts/AuthContext';
+import JerseyImage from '../components/JerseyImage';
+
+interface Offer {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  original_price?: number;
+  image_url: string;
+  category_id: string;
+  valid_until?: string;
+  promo_code?: string;
+  is_active: boolean;
+  min_order_amount?: number;
+  max_usage_per_user?: number;
+  available_days?: number[]; // 0-6 (Sun-Sat)
+  available_time_start?: string; // HH:MM
+  available_time_end?: string; // HH:MM
+  requires_points?: number;
+
+  // New Complex Offer Fields
+  extras_enabled?: boolean;
+  enabled_extra_categories?: string[]; // IDs of categories allowed as extras
+  are_extras_chargeable?: boolean; // If false, allowed extras are free (e.g., "Choose 2 toppings")
+  max_extras?: number;
+  delivery_only?: boolean;
+  pickup_only?: boolean;
+}
+
+interface OfferCategory {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  display_order: number;
+}
+
+// Interfaces for Extras Info
+interface ExtraCategory {
+  id: string;
+  name: string;
+  description?: string;
+}
+
+interface ExtraProduct {
+  id: string;
+  name: string;
+  price: number;
+  category_id: string;
+  description?: string;
+}
 
 interface OffersPageProps {
   onNavigate?: (page: string) => void;
@@ -21,8 +69,6 @@ const OffersPage: React.FC<OffersPageProps> = ({ onNavigate }) => {
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [showQRModal, setShowQRModal] = useState(false);
 
   // New State for Fulfillment
   const [fulfillmentType, setFulfillmentType] = useState<'delivery' | 'pickup'>('pickup');
@@ -31,26 +77,17 @@ const OffersPage: React.FC<OffersPageProps> = ({ onNavigate }) => {
   // Cart Hook
   const { addItem, getTotalItems } = useCart();
 
-  // Header State
-  const [headerState, setHeaderState] = useState<'default' | 'selected'>('default');
-  const containerRef = useRef<HTMLDivElement>(null);
-
   // Extras State
   const [extraCategories, setExtraCategories] = useState<ExtraCategory[]>([]);
   const [extraProducts, setExtraProducts] = useState<ExtraProduct[]>([]);
   const [selectedExtras, setSelectedExtras] = useState<string[]>([]);
   const [loadingExtras, setLoadingExtras] = useState(false);
 
-  // Scroll handler for parallax effect
-  const [scrollTop, setScrollTop] = useState(0);
-  const contentRef = useRef<HTMLDivElement>(null);
-
-  // Dynamic Header Image (like MenuPage)
+  // Dynamic Header Image
   const [activeOfferImage, setActiveOfferImage] = useState<string | null>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const offerRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
-  // React to auth changes - reset userId when logged out
   useEffect(() => {
     if (!isLoggedIn) {
       setUserId(null);
@@ -65,8 +102,6 @@ const OffersPage: React.FC<OffersPageProps> = ({ onNavigate }) => {
   // Fetch Extras when offer is selected
   useEffect(() => {
     if (selectedOffer) {
-      // Reset fulfillment type to pickup by default or keep persistent?
-      // Let's reset to ensure choice
       setFulfillmentType('pickup');
 
       if (selectedOffer.extras_enabled && selectedOffer.enabled_extra_categories?.length) {
@@ -142,7 +177,6 @@ const OffersPage: React.FC<OffersPageProps> = ({ onNavigate }) => {
           .single();
 
         if (data) {
-          console.log('👤 User identified:', data.id);
           setUserId(data.id);
         }
       } catch (error) {
@@ -152,7 +186,6 @@ const OffersPage: React.FC<OffersPageProps> = ({ onNavigate }) => {
   };
 
   const loadData = async () => {
-    console.log('🔄 Loading offers data...');
     setLoading(true);
     try {
       // 1. Load Categories
@@ -162,825 +195,386 @@ const OffersPage: React.FC<OffersPageProps> = ({ onNavigate }) => {
         .eq('is_active', true)
         .order('display_order', { ascending: true });
 
-      if (catData) {
-        setCategories(catData);
-      }
+      if (catData) setCategories(catData);
 
       // 2. Load Offers
-      const { data, error } = await supabase
-        .from('special_offers')
+      const now = new Date().toISOString();
+      const { data: offersData, error: offersError } = await supabase
+        .from('offers')
         .select('*')
         .eq('is_active', true)
-        .order('display_order', { ascending: true });
+        // .gte('valid_until', now) // Optional: filter expired
+        .order('price', { ascending: true });
 
-      if (error) throw error;
-
-      if (data && data.length > 0) {
-        setOffers(data);
-      } else {
-        console.log('No offers found in database.');
+      if (offersData) {
+        setOffers(offersData);
+        if (offersData.length > 0) {
+          setActiveOfferImage(offersData[0].image_url);
+        }
       }
+
     } catch (error) {
-      console.error('💥 Error loading offers:', error);
+      console.error('Error loading offers:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  // Helper to generate QR data
-  const generateQRData = (offer: Offer) => {
-    return JSON.stringify({
-      offer_id: offer.id,
-      user_id: userId,
-      type: 'offer_redemption',
-      timestamp: Date.now(),
-      extras: selectedExtras,
-      total_price: calculateTotal()
-    });
+  const handleCopyCode = (code: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(code);
+    setCopiedCode(code);
+    setTimeout(() => setCopiedCode(null), 2000);
   };
 
-  const handleOfferClick = (offer: Offer) => {
-    setSelectedOffer(offer);
-    setHeaderState('selected');
-    containerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleBackToOffers = () => {
-    setHeaderState('default');
-    setTimeout(() => setSelectedOffer(null), 300);
-  };
-
-  // Handle hardware back button
-  useEffect(() => {
-    if (selectedOffer) {
-      const handlePopState = (e: PopStateEvent) => {
-        e.preventDefault();
-        handleBackToOffers();
-      };
-
-      window.history.pushState(null, '', window.location.pathname);
-      window.addEventListener('popstate', handlePopState);
-
-      return () => {
-        window.removeEventListener('popstate', handlePopState);
-      };
-    }
-  }, [selectedOffer]);
-
-  const handleRedeemClick = () => {
-    if (!userId) {
-      setShowAuthModal(true);
-    } else {
-      setShowQRModal(true);
-    }
-  };
-
-  const handleAuthSuccess = (newUserId: string) => {
-    setUserId(newUserId);
-    // If it was QR flow, show it now
-    if (fulfillmentType === 'pickup' && selectedOffer) {
-      setShowQRModal(true);
-    }
-  };
-
-  const handleAddToOrder = () => {
+  const handleAddToCart = () => {
     if (!selectedOffer) return;
 
-    const extras = selectedExtras.map(id => {
-      const product = extraProducts.find(p => p.id === id);
-      return product ? {
-        id: product.id,
-        name: product.name,
-        price: product.price,
+    // Resolve extra objects
+    const resolvedExtras = selectedExtras.map(id => {
+      const p = extraProducts.find(prod => prod.id === id);
+      return p ? {
+        id: p.id,
+        name: p.name,
+        price: selectedOffer.are_extras_chargeable === false ? 0 : p.price,
         quantity: 1
       } : null;
-    }).filter(e => e !== null) as any[]; // Cast to match CartItem extras
+    }).filter(Boolean) as any[];
 
-    const cartItem: CartItem = {
+    // Add delivery flag to special requests logic or separate field
+    const deliveryNote = fulfillmentType === 'delivery' ? '[DELIVERY ONLY]' : '';
+
+    addItem({
       id: selectedOffer.id,
       name: selectedOffer.title,
-      price: selectedOffer.price, // Use base price, extras added separately in cart logic usually? NO, useCart adds extras price.
+      price: selectedOffer.price, // Base price
       quantity: 1,
       image_url: selectedOffer.image_url,
-      extras: extras,
-      deliveryOnly: true // Mark this item as delivery-only since user chose delivery
-    };
+      extras: resolvedExtras,
+      deliveryOnly: fulfillmentType === 'delivery', // Custom flag for Cart
+      specialRequests: `${deliveryNote} ${selectedOffer.description}`.trim()
+    });
 
-    addItem(cartItem);
     setShowAddedFeedback(true);
-
-    // Provide visual feedback then close
     setTimeout(() => {
       setShowAddedFeedback(false);
-      handleBackToOffers();
+      setSelectedOffer(null); // Close modal
     }, 1500);
   };
 
-  // Compute filtered offers with useMemo to ensure stable reference
-  const filteredOffers = React.useMemo(() => offers.filter(offer =>
-    selectedCategory === 'all' || offer.category_id === selectedCategory
-  ), [offers, selectedCategory]);
+  // Scroll Observer Logic (Similar to MenuPage)
+  useEffect(() => {
+    if (loading || offers.length === 0) return;
 
-  if (loading) return <div style={{ color: 'white', textAlign: 'center', paddingTop: '100px' }}>Loading Offers...</div>;
+    const options = {
+      root: null,
+      rootMargin: '-50% 0px 0px 0px',
+      threshold: 0.1
+    };
 
-  const handleScroll = () => {
-    if (contentRef.current) {
-      setScrollTop(contentRef.current.scrollTop);
-    }
-  };
+    observerRef.current = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const offerId = entry.target.getAttribute('data-id');
+          const offer = offers.find(o => o.id === offerId);
+          if (offer) {
+            setActiveOfferImage(offer.image_url);
+          }
+        }
+      });
+    }, options);
+
+    Object.values(offerRefs.current).forEach((el) => {
+      if (el) observerRef.current?.observe(el);
+    });
+
+    return () => {
+      observerRef.current?.disconnect();
+    };
+  }, [loading, offers, selectedCategory]);
+
+  const filteredOffers = useMemo(() => {
+    if (selectedCategory === 'all') return offers;
+    return offers.filter(o => o.category_id === selectedCategory);
+  }, [offers, selectedCategory]);
 
   return (
-    <div
-      style={{
-        height: '100%',
-        width: '100%',
-        background: '#0f172a',
-        position: 'relative',
-        fontFamily: '"Inter", sans-serif',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden'
-      }}
-    >
-      {/* 1. Simple Header */}
-      <div style={{
-        padding: '24px 24px 12px 24px',
-        zIndex: 20
-      }}>
-        <h1 style={{ color: 'white', fontSize: '28px', fontWeight: '800', lineHeight: 1.2, margin: 0 }}>
-          Special Offers <span style={{ fontSize: '24px' }}>🎁</span>
-        </h1>
-        <p style={{ color: '#94a3b8', marginTop: '6px', fontSize: '15px' }}>
-          Best deals selected for you
-        </p>
-      </div>
+    <div className="rashti-page-dark">
 
-      {/* 2. Scrollable Content Area */}
-      <div
-        ref={containerRef}
-        style={{
-          flex: 1,
-          overflowY: 'auto',
-          padding: '0 20px 100px 20px', // Bottom padding for navigation
-          zIndex: 20
-        }}
-      >
-        {/* Category Filter */}
-        {categories.length > 0 && (
-          <div style={{
-            marginBottom: '24px',
-            display: 'flex',
-            gap: '12px',
-            overflowX: 'auto',
-            paddingBottom: '8px',
-            scrollbarWidth: 'none',
-          }}>
-            <motion.button
-              onClick={() => setSelectedCategory('all')}
-              animate={{
-                backgroundColor: selectedCategory === 'all' ? '#ea580c' : '#1e293b',
-                color: selectedCategory === 'all' ? 'white' : '#94a3b8'
-              }}
-              style={{
-                padding: '10px 20px',
-                borderRadius: '100px',
-                border: 'none',
-                fontSize: '14px',
-                fontWeight: '600',
-                whiteSpace: 'nowrap',
-                cursor: 'pointer',
-                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-              }}
+      {/* 1. Header & Categories */}
+      <div className="rashti-header-container" style={{ position: 'absolute', top: 0, left: 0, right: 0 }}>
+        <h2 className="rashti-title" style={{ fontSize: '24px', margin: '0 0 10px 0', textAlign: 'center' }}>
+          Offerte Speciali
+        </h2>
+
+        {/* Categories Scroller */}
+        <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', padding: '0 0 5px 0', scrollbarWidth: 'none' }}>
+          <button
+            onClick={() => setSelectedCategory('all')}
+            className={`rashti-chip ${selectedCategory === 'all' ? 'active' : ''}`}
+          >
+            Tutte
+          </button>
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setSelectedCategory(cat.id)}
+              className={`rashti-chip ${selectedCategory === cat.id ? 'active' : ''}`}
             >
-              All Offers
-            </motion.button>
-
-            {categories.map(cat => (
-              <motion.button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
-                animate={{
-                  backgroundColor: selectedCategory === cat.id ? '#ea580c' : '#1e293b',
-                  color: selectedCategory === cat.id ? 'white' : '#94a3b8'
-                }}
-                style={{
-                  padding: '10px 20px',
-                  borderRadius: '100px',
-                  border: 'none',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  whiteSpace: 'nowrap',
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                }}
-              >
-                {cat.name}
-              </motion.button>
-            ))}
-          </div>
-        )}
-
-        {/* Big Offers List (McDonald's Style) */}
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '24px'
-        }}>
-          {filteredOffers.map((offer, index) => (
-            <motion.div
-              key={offer.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              onClick={() => handleOfferClick(offer)}
-              style={{
-                background: '#1e293b',
-                borderRadius: '24px',
-                overflow: 'hidden',
-                cursor: 'pointer',
-                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-                position: 'relative'
-              }}
-              whileTap={{ scale: 0.98 }}
-            >
-              {/* Big Image */}
-              <div style={{ height: '220px', width: '100%', position: 'relative' }}>
-                {offer.image_url ? (
-                  <JerseyImage
-                    layoutId={`image-${offer.id}`}
-                    src={offer.image_url}
-                    alt={offer.title}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
-                ) : (
-                  <div style={{ width: '100%', height: '100%', background: '#334155', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Gift size={64} color="#94a3b8" />
-                  </div>
-                )}
-                {/* Price Tag */}
-                <div style={{
-                  position: 'absolute',
-                  bottom: '12px',
-                  right: '12px',
-                  background: 'rgba(15, 23, 42, 0.9)',
-                  backdropFilter: 'blur(4px)',
-                  padding: '8px 16px',
-                  borderRadius: '12px',
-                  border: '1px solid rgba(255,255,255,0.1)'
-                }}>
-                  <span style={{ color: '#fb923c', fontWeight: '800', fontSize: '18px' }}>
-                    {offer.price > 0 ? `€${offer.price}` : 'FREE'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Content */}
-              <div style={{ padding: '20px' }}>
-                <motion.h3
-                  layoutId={`title-${offer.id}`}
-                  style={{ color: 'white', margin: '0 0 8px 0', fontSize: '20px', fontWeight: 'bold' }}
-                >
-                  {offer.title}
-                </motion.h3>
-                <p style={{
-                  fontSize: '14px',
-                  color: '#94a3b8',
-                  margin: 0,
-                  lineHeight: '1.5',
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden'
-                }}>
-                  {offer.description}
-                </p>
-
-                <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <button style={{
-                    flex: 1,
-                    background: '#ea580c',
-                    color: 'white',
-                    border: 'none',
-                    padding: '12px',
-                    borderRadius: '12px',
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                    cursor: 'pointer'
-                  }}>
-                    View Details
-                  </button>
-                </div>
-              </div>
-            </motion.div>
+              {cat.name}
+            </button>
           ))}
         </div>
       </div>
 
+      {/* 2. Hero Background */}
+      <div style={{
+        position: 'fixed',
+        top: 0, left: 0, right: 0, bottom: 0,
+        zIndex: 0, pointerEvents: 'none',
+        background: 'radial-gradient(circle at center, transparent 0%, rgba(13, 61, 46, 0.4) 100%)'
+      }}>
+        <AnimatePresence mode="wait">
+          {activeOfferImage && (
+            <motion.div
+              key={activeOfferImage}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.7 }}
+              style={{
+                position: 'absolute',
+                top: 0, left: 0, right: 0, bottom: '40vh',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                paddingTop: '60px',
+              }}
+            >
+              <img
+                src={activeOfferImage}
+                alt="Offer"
+                style={{
+                  width: '90%', height: '90%', objectFit: 'contain',
+                  filter: 'drop-shadow(0px 20px 50px rgba(0,0,0,0.6))'
+                }}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <div style={{ position: 'absolute', top: '30vh', left: 0, right: 0, bottom: 0, background: 'linear-gradient(180deg, rgba(8, 41, 32, 0) 0%, rgba(8, 41, 32, 1) 60%)' }} />
+      </div>
 
-      {/* 3. Selected Offer Overlay (Full Screen) */}
-      <AnimatePresence mode="wait">
+      {/* 3. Offers List */}
+      <div style={{
+        flex: 1,
+        overflowY: 'auto',
+        marginTop: '50vh',
+        position: 'relative',
+        zIndex: 10,
+        background: 'linear-gradient(180deg, rgba(8, 41, 32, 0.95) 0%, #051a14 100%)',
+        borderTopLeftRadius: '30px',
+        borderTopRightRadius: '30px',
+        paddingTop: '20px',
+        paddingBottom: '80px',
+        scrollSnapType: 'y mandatory',
+      }}>
+        {loading ? (
+          <div className="text-gold" style={{ textAlign: 'center', padding: '40px' }}>Caricamento offerte...</div>
+        ) : (
+          filteredOffers.map((offer) => (
+            <div
+              key={offer.id}
+              ref={(el) => { offerRefs.current[offer.id] = el; }}
+              data-id={offer.id}
+              style={{
+                minHeight: '40vh',
+                scrollSnapAlign: 'start',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '20px'
+              }}
+            >
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                className="rashti-card"
+                style={{ width: '100%', maxWidth: '500px' }}
+                onClick={() => setSelectedOffer(offer)}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                  <h3 className="rashti-title" style={{ fontSize: '20px', margin: 0, lineHeight: 1.2 }}>{offer.title}</h3>
+                  <div style={{ background: 'var(--persian-gold)', color: '#000', padding: '4px 8px', borderRadius: '8px', fontWeight: 'bold', fontSize: '14px' }}>
+                    €{offer.price.toFixed(2)}
+                  </div>
+                </div>
+
+                <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '14px', marginBottom: '15px' }}>
+                  {offer.description}
+                </p>
+
+                {offer.promo_code && (
+                  <div
+                    onClick={(e) => handleCopyCode(offer.promo_code!, e)}
+                    style={{
+                      background: 'rgba(255,255,255,0.1)', border: '1px dashed #c9a45c',
+                      padding: '10px', borderRadius: '10px', display: 'flex', alignItems: 'center',
+                      justifyContent: 'center', gap: '8px', cursor: 'pointer', marginBottom: '15px'
+                    }}
+                  >
+                    <Tag size={16} color="#c9a45c" />
+                    <span style={{ color: '#c9a45c', fontWeight: 'bold', letterSpacing: '1px' }}>
+                      {offer.promo_code}
+                    </span>
+                    {copiedCode === offer.promo_code ? <Check size={16} color="#4ade80" /> : <Copy size={16} color="#c9a45c" />}
+                  </div>
+                )}
+
+                <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    {offer.delivery_only && <span className="rashti-chip" style={{ fontSize: '10px', padding: '4px 8px' }}>Solo Delivery</span>}
+                    {offer.pickup_only && <span className="rashti-chip" style={{ fontSize: '10px', padding: '4px 8px' }}>Solo Ritiro</span>}
+                  </div>
+                  <button className="rashti-btn-primary" style={{ height: '36px', padding: '0 16px', fontSize: '12px' }}>
+                    DETTAGLI
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Offer Detail Modal */}
+      <AnimatePresence>
         {selectedOffer && (
           <motion.div
-            key={selectedOffer.id}
             initial={{ opacity: 0, y: '100%' }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             style={{
               position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: '#0f172a',
-              zIndex: 2000,
+              top: 0, left: 0, right: 0, bottom: 0,
+              zIndex: 100,
+              background: '#051a14',
               display: 'flex',
-              flexDirection: 'column',
-              overflow: 'hidden'
+              flexDirection: 'column'
             }}
           >
-            {/* Fixed Header with Image - The Ceiling */}
-            <div style={{
-              position: 'relative',
-              height: '180px', // Reduced height
-              flexShrink: 0,
-              borderBottomLeftRadius: '50% 40px', // Flatter curve
-              borderBottomRightRadius: '50% 40px', // Flatter curve
-              background: '#1e293b',
-              overflow: 'hidden',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-              zIndex: 50
-            }}>
-              {/* Background Image */}
-              {selectedOffer.image_url ? (
-                <JerseyImage
-                  layoutId={`image-${selectedOffer.id}`}
-                  src={selectedOffer.image_url}
-                  alt={selectedOffer.title}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover'
-                  }}
-                />
-              ) : (
-                <div style={{
-                  position: 'absolute',
-                  top: 0, left: 0, right: 0, bottom: 0,
-                  background: '#ea580c',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <span style={{ fontSize: '60px' }}>🎁</span>
-                </div>
-              )}
-
-              {/* Gradient Overlay */}
-              <div style={{
-                position: 'absolute',
-                top: 0, left: 0, right: 0, bottom: 0,
-                background: 'linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.7))'
-              }} />
-
-              {/* Back Button */}
+            {/* Modal Header */}
+            <div style={{ padding: '20px', display: 'flex', justifyContent: 'flex-end' }}>
               <button
-                onClick={handleBackToOffers}
-                style={{
-                  position: 'absolute',
-                  top: '20px',
-                  left: '20px',
-                  background: 'rgba(0,0,0,0.5)',
-                  border: '1px solid rgba(255,255,255,0.2)',
-                  borderRadius: '50%',
-                  width: '44px',
-                  height: '44px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'white',
-                  cursor: 'pointer',
-                  zIndex: 100,
-                  backdropFilter: 'blur(4px)'
-                }}
+                onClick={() => setSelectedOffer(null)}
+                style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: '40px', height: '40px', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
               >
-                <ChevronLeft size={28} />
+                <X size={24} />
               </button>
-
-              {/* Title in Header */}
-              <div style={{
-                position: 'absolute',
-                bottom: '30px',
-                left: 0,
-                right: 0,
-                textAlign: 'center',
-                padding: '0 60px'
-              }}>
-                <motion.h2
-                  layoutId={`title-${selectedOffer.id}`}
-                  style={{
-                    fontSize: '22px',
-                    fontWeight: 'bold',
-                    color: 'white',
-                    margin: 0,
-                    textShadow: '0 2px 4px rgba(0,0,0,0.5)'
-                  }}
-                >
-                  {selectedOffer.title}
-                </motion.h2>
-              </div>
             </div>
 
-            {/* Content Container - Scrollable Area (scrolls behind header visually via negative margin) */}
-            <div
-              ref={contentRef}
-              onScroll={handleScroll}
-              style={{
-                flex: 1,
-                overflowY: 'auto',
-                paddingTop: '100px', // Push details down significantly
-                paddingBottom: '140px', // Increased padding for bigger bottom bar + toggle
-                paddingLeft: '20px',
-                paddingRight: '20px',
-                marginTop: '-30px', // Overlap into header curve
-                position: 'relative',
-                zIndex: 40
-              }}
-            >
-              {/* Details Card */}
-              <div style={{
-                background: '#1e293b',
-                borderRadius: '32px',
-                padding: '24px',
-                marginBottom: '20px',
-                boxShadow: '0 10px 30px -10px rgba(0,0,0,0.3)'
-              }}>
-                <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: 'white', marginBottom: '10px' }}>Details</h3>
-                <p style={{ color: '#94a3b8', lineHeight: '1.6', fontSize: '15px', margin: 0 }}>{selectedOffer.description}</p>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
+              <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                <img src={selectedOffer.image_url} alt={selectedOffer.title} style={{ width: '200px', height: '200px', objectFit: 'contain', filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.5))' }} />
               </div>
+
+              <h2 className="rashti-title" style={{ fontSize: '28px', marginBottom: '8px' }}>{selectedOffer.title}</h2>
+              <p style={{ color: '#ccc', fontSize: '16px', marginBottom: '20px' }}>{selectedOffer.description}</p>
 
               {/* Fulfillment Selection */}
-              <div style={{ marginBottom: '24px' }}>
-                <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: 'white', marginBottom: '12px', marginLeft: '4px' }}>
-                  How do you want it?
-                </h3>
-                <div style={{ display: 'flex', gap: '12px' }}>
-                  <button
+              {(selectedOffer.delivery_only || selectedOffer.pickup_only) ? (
+                <div style={{ marginBottom: '20px', padding: '15px', background: 'rgba(201, 164, 92, 0.1)', borderRadius: '12px', color: '#c9a45c', textAlign: 'center' }}>
+                  {selectedOffer.delivery_only ? '⚠ Disponibile solo per Consegna' : '⚠ Disponibile solo per Ritiro'}
+                </div>
+              ) : (
+                <div style={{ display: 'flex', gap: '10px', marginBottom: '25px' }}>
+                  <div
                     onClick={() => setFulfillmentType('pickup')}
-                    style={{
-                      flex: 1,
-                      padding: '16px',
-                      borderRadius: '20px',
-                      border: fulfillmentType === 'pickup' ? '2px solid #ea580c' : '2px solid transparent',
-                      background: fulfillmentType === 'pickup' ? 'rgba(234, 88, 12, 0.1)' : '#1e293b',
-                      color: fulfillmentType === 'pickup' ? '#ea580c' : '#94a3b8',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: '8px',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                      fontWeight: 'bold'
-                    }}
+                    className={`rashti-chip ${fulfillmentType === 'pickup' ? 'active' : ''}`}
+                    style={{ flex: 1, textAlign: 'center', padding: '12px 0' }}
                   >
-                    <Store size={28} />
-                    Pickup (Redeem)
-                  </button>
-                  <button
+                    Ritiro
+                  </div>
+                  <div
                     onClick={() => setFulfillmentType('delivery')}
-                    style={{
-                      flex: 1,
-                      padding: '16px',
-                      borderRadius: '20px',
-                      border: fulfillmentType === 'delivery' ? '2px solid #ea580c' : '2px solid transparent',
-                      background: fulfillmentType === 'delivery' ? 'rgba(234, 88, 12, 0.1)' : '#1e293b',
-                      color: fulfillmentType === 'delivery' ? '#ea580c' : '#94a3b8',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: '8px',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                      fontWeight: 'bold'
-                    }}
+                    className={`rashti-chip ${fulfillmentType === 'delivery' ? 'active' : ''}`}
+                    style={{ flex: 1, textAlign: 'center', padding: '12px 0' }}
                   >
-                    <Bike size={28} />
-                    Delivery (Cart)
-                  </button>
+                    Domicilio
+                  </div>
                 </div>
-              </div>
+              )}
 
-              {/* Extras Section */}
-              {selectedOffer.extras_enabled && (
-                <div style={{ width: '100%' }}>
-                  {loadingExtras ? (
-                    <div style={{ textAlign: 'center', color: '#94a3b8', padding: '20px' }}>Loading extras...</div>
-                  ) : extraCategories.length > 0 ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                      <div style={{
-                        padding: '16px',
-                        background: 'rgba(234, 88, 12, 0.1)',
-                        borderRadius: '20px',
-                        border: '1px solid rgba(234, 88, 12, 0.2)',
-                        textAlign: 'center'
-                      }}>
-                        <span style={{ color: '#fb923c', fontSize: '16px', fontWeight: '600' }}>✨ Customize your order</span>
-                      </div>
-
-                      {extraCategories.map(cat => {
-                        const products = extraProducts.filter(p => p.category_id === cat.id);
-                        if (products.length === 0) return null;
-
-                        return (
-                          <div key={cat.id}>
-                            <h4 style={{ margin: '0 0 16px 8px', color: '#e2e8f0', fontSize: '18px', fontWeight: '700' }}>{cat.name}</h4>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px' }}>
-                              {products.map(product => {
-                                const isSelected = selectedExtras.includes(product.id);
-                                return (
-                                  <motion.div
-                                    key={product.id}
-                                    whileTap={{ scale: 0.98 }}
-                                    onClick={() => toggleExtra(product.id)}
-                                    style={{
-                                      background: isSelected ? '#ea580c' : '#1e293b',
-                                      borderRadius: '16px',
-                                      padding: '16px',
-                                      cursor: 'pointer',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'space-between',
-                                      boxShadow: isSelected ? '0 10px 25px -5px rgba(234, 88, 12, 0.5)' : '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                                      transition: 'all 0.2s ease'
-                                    }}
-                                  >
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                      <div style={{
-                                        width: '24px',
-                                        height: '24px',
-                                        borderRadius: '50%',
-                                        background: isSelected ? 'white' : 'rgba(255,255,255,0.1)',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center'
-                                      }}>
-                                        {isSelected && <CheckCircle size={16} color="#ea580c" />}
-                                      </div>
-                                      <span style={{ color: isSelected ? 'white' : '#e2e8f0', fontSize: '15px', fontWeight: '600' }}>{product.name}</span>
-                                    </div>
-                                    <span style={{ color: isSelected ? 'rgba(255,255,255,0.9)' : '#94a3b8', fontSize: '14px', fontWeight: '500' }}>
-                                      {selectedOffer.are_extras_chargeable !== false
-                                        ? `+€${product.price.toFixed(2)}`
-                                        : 'Incluso'}
-                                    </span>
-                                  </motion.div>
-                                );
-                              })}
-                            </div>
+              {/* Extras Selection */}
+              {extraCategories.length > 0 && (
+                <div style={{ marginBottom: '30px' }}>
+                  <h3 className="rashti-title" style={{ fontSize: '18px', marginBottom: '15px' }}>Personalizza</h3>
+                  {extraCategories.map(cat => (
+                    <div key={cat.id} style={{ marginBottom: '20px' }}>
+                      <h4 style={{ color: '#c9a45c', marginBottom: '10px', fontFamily: 'Cinzel' }}>{cat.name}</h4>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '10px' }}>
+                        {extraProducts.filter(p => p.category_id === cat.id).map(prod => (
+                          <div
+                            key={prod.id}
+                            onClick={() => toggleExtra(prod.id)}
+                            style={{
+                              border: selectedExtras.includes(prod.id) ? '1px solid #c9a45c' : '1px solid rgba(255,255,255,0.1)',
+                              background: selectedExtras.includes(prod.id) ? 'rgba(201, 164, 92, 0.2)' : 'rgba(255,255,255,0.05)',
+                              padding: '10px', borderRadius: '12px', cursor: 'pointer', textAlign: 'center'
+                            }}
+                          >
+                            <div style={{ color: 'white', fontSize: '14px', marginBottom: '4px' }}>{prod.name}</div>
+                            {selectedOffer.are_extras_chargeable !== false && (
+                              <div style={{ color: '#aaa', fontSize: '12px' }}>+€{prod.price.toFixed(2)}</div>
+                            )}
                           </div>
-                        );
-                      })}
+                        ))}
+                      </div>
                     </div>
-                  ) : (
-                    <div style={{
-                      padding: '24px',
-                      background: '#1e293b',
-                      borderRadius: '24px',
-                      textAlign: 'center',
-                      color: '#94a3b8'
-                    }}>
-                      No extras available for this offer.
-                    </div>
-                  )}
+                  ))}
                 </div>
               )}
             </div>
 
-            {/* Sticky Bottom Bar */}
-            <div style={{
-              position: 'fixed',
-              bottom: '20px',
-              left: '20px',
-              right: '20px',
-              zIndex: 2002
-            }}>
-              <AnimatePresence mode="wait">
-                {showAddedFeedback ? (
-                  <motion.div
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.8, opacity: 0 }}
-                    style={{
-                      background: '#22c55e',
-                      color: 'white',
-                      padding: '18px 24px',
-                      borderRadius: '24px',
-                      fontSize: '18px',
-                      fontWeight: 'bold',
-                      textAlign: 'center',
-                      boxShadow: '0 20px 40px -10px rgba(34, 197, 94, 0.5)'
-                    }}
-                  >
-                    Added to Cart! 🛒
-                  </motion.div>
-                ) : (
-                  <button
-                    onClick={fulfillmentType === 'pickup' ? handleRedeemClick : handleAddToOrder}
-                    style={{
-                      background: fulfillmentType === 'pickup' ? '#ea580c' : '#3b82f6', // Orange for Pickup, Blue for Delivery
-                      color: 'white',
-                      border: 'none',
-                      padding: '18px 24px',
-                      borderRadius: '24px',
-                      fontSize: '18px',
-                      fontWeight: 'bold',
-                      boxShadow: fulfillmentType === 'pickup'
-                        ? '0 20px 40px -10px rgba(234, 88, 12, 0.5)'
-                        : '0 20px 40px -10px rgba(59, 130, 246, 0.5)',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      width: '100%',
-                      transition: 'all 0.3s ease'
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      {fulfillmentType === 'pickup' ? <QrCode size={24} /> : <ShoppingCart size={24} />}
-                      <span>{fulfillmentType === 'pickup' ? 'Mostra Codice' : 'Aggiungi al Carrello'}</span>
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', lineHeight: '1' }}>
-                      <span style={{ fontSize: '12px', opacity: 0.8, marginBottom: '2px' }}>Totale</span>
-                      <span style={{ fontSize: '18px' }}>€{calculateTotal().toFixed(2)}</span>
-                    </div>
-                  </button>
-                )}
-              </AnimatePresence>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* QR Code Modal */}
-      <AnimatePresence>
-        {showQRModal && selectedOffer && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setShowQRModal(false)}
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: 'rgba(0,0,0,0.8)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 3000, // INCREASED Z-INDEX TO SHOW ABOVE OVERLAY
-              padding: '20px'
-            }}
-          >
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                background: '#1e293b', // Dark slate
-                padding: '30px',
-                borderRadius: '32px',
-                maxWidth: '350px',
-                width: '100%',
-                textAlign: 'center',
-                border: '1px solid #334155'
-              }}
-            >
-              <h3 style={{ margin: '0 0 5px 0', color: 'white', fontSize: '20px' }}>{selectedOffer.title}</h3>
-
-              {selectedExtras.length > 0 && (
-                <div style={{ marginBottom: '15px' }}>
-                  <p style={{ margin: 0, fontSize: '14px', color: '#94a3b8' }}>
-                    + {selectedExtras.length} Extras
-                  </p>
-                  <p style={{ margin: '4px 0 0 0', fontSize: '18px', color: '#fb923c', fontWeight: 'bold' }}>
-                    Totale: €{calculateTotal().toFixed(2)}
-                  </p>
-                </div>
-              )}
-
-              <div style={{ background: 'white', padding: '15px', display: 'inline-block', borderRadius: '20px' }}>
-                <QRCode
-                  value={generateQRData(selectedOffer)}
-                  size={200}
-                  style={{ height: "auto", maxWidth: "100%", width: "100%" }}
-                  viewBox={`0 0 256 256`}
-                />
+            {/* Sticky Footer Action */}
+            <div style={{ padding: '20px', background: 'rgba(5, 26, 20, 0.95)', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
+                <span style={{ color: '#ccc' }}>Totale:</span>
+                <span className="text-gold" style={{ fontSize: '20px', fontWeight: 'bold' }}>€{calculateTotal().toFixed(2)}</span>
               </div>
-
-              <p style={{ marginTop: '20px', color: '#94a3b8', fontSize: '14px' }}>
-                Mostra questo QR code al personale per riscattare l'offerta.
-              </p>
-
               <button
-                onClick={() => setShowQRModal(false)}
-                style={{
-                  marginTop: '20px',
-                  background: '#334155',
-                  border: 'none',
-                  padding: '12px 30px',
-                  borderRadius: '15px',
-                  fontSize: '16px',
-                  cursor: 'pointer',
-                  color: 'white',
-                  fontWeight: 'bold'
-                }}
+                onClick={handleAddToCart}
+                className="rashti-btn-primary"
+                style={{ width: '100%', height: '54px' }}
               >
-                Chiudi
-              </button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Auth Modal */}
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        onSuccess={handleAuthSuccess}
-      />
-
-      {/* Floating Cart Button - Visible when items in cart and not viewing details */}
-      <AnimatePresence>
-        {getTotalItems() > 0 && headerState === 'default' && (
-          <motion.div
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-            style={{
-              position: 'fixed',
-              bottom: '24px',
-              left: '0',
-              right: '0',
-              display: 'flex',
-              justifyContent: 'center',
-              zIndex: 50,
-              pointerEvents: 'none' // Allow clicks to pass through if container full width
-            }}
-          >
-            <div style={{ pointerEvents: 'auto' }}>
-              <button
-                onClick={() => onNavigate && onNavigate('cart')}
-                style={{
-                  background: '#ea580c',
-                  color: 'white',
-                  border: 'none',
-                  padding: '16px 32px',
-                  borderRadius: '100px',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  boxShadow: '0 10px 25px -5px rgba(234, 88, 12, 0.5)',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  minWidth: '200px', // Ensure good touch target
-                  justifyContent: 'center'
-                }}
-              >
-                <div style={{ position: 'relative' }}>
-                  <ShoppingCart size={24} />
-                  <span style={{
-                    position: 'absolute',
-                    top: '-8px',
-                    right: '-8px',
-                    background: 'white',
-                    color: '#ea580c',
-                    borderRadius: '50%',
-                    width: '18px',
-                    height: '18px',
-                    fontSize: '11px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 'bold'
-                  }}>
-                    {getTotalItems()}
-                  </span>
-                </div>
-                <span>Go to Cart</span>
+                {showAddedFeedback ? 'AGGIUNTO!' : 'AGGIUNGI AL CARRELLO'}
               </button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </div >
+
+      {/* Floating Cart Button */}
+      {getTotalItems() > 0 && (
+        <button
+          onClick={() => onNavigate?.('cart')}
+          className="rashti-btn-icon"
+          style={{
+            position: 'fixed', bottom: '20px', left: '20px',
+            width: '60px', height: '60px',
+            zIndex: 90
+          }}
+        >
+          <div style={{ position: 'relative' }}>
+            <ShoppingCart size={24} color="#082920" />
+            <span style={{
+              position: 'absolute', top: '-8px', right: '-8px', background: '#082920', color: '#c9a45c',
+              fontSize: '12px', fontWeight: 'bold', width: '20px', height: '20px', borderRadius: '50%',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #c9a45c'
+            }}>
+              {getTotalItems()}
+            </span>
+          </div>
+        </button>
+      )}
+
+    </div>
   );
 };
 

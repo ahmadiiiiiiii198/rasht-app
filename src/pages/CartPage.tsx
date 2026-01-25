@@ -60,7 +60,6 @@ const CartPage: React.FC = () => {
 
   const [isValidatingAddress, setIsValidatingAddress] = useState(false);
   const [addressValidation, setAddressValidation] = useState<AddressValidationResult | null>(null);
-  // Removed validationTimeout state as it caused render loops
 
   // ---------------------------------------------------------------------------
   // Generate delivery time options (18:00 - 22:30 in 15‑minute steps)
@@ -77,10 +76,6 @@ const CartPage: React.FC = () => {
   // ---------------------------------------------------------------------------
   // Address validation (only for delivery methods that need an address)
   // ---------------------------------------------------------------------------
-  // ---------------------------------------------------------------------------
-  // Address validation (only for delivery methods that need an address)
-  // ---------------------------------------------------------------------------
-  // Extract total price to a primitive value for stable dependency
   const cartTotal = cart.getTotalPrice();
 
   const validateAddress = useCallback(async (address: string) => {
@@ -92,7 +87,6 @@ const CartPage: React.FC = () => {
 
     setIsValidatingAddress(true);
     try {
-      // Use cartTotal here which is captured in closure
       const result = await shippingZoneService.validateDeliveryAddress(address, cartTotal);
       setAddressValidation(result);
       if (result.isValid && result.isWithinZone) {
@@ -262,512 +256,378 @@ const CartPage: React.FC = () => {
   // ---------------------------------------------------------------------------
   if (orderSuccess) {
     return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        style={{
-          padding: '40px 20px',
-          minHeight: '60vh',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          textAlign: 'center',
-        }}
-      >
-        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: 'spring' }} style={{ fontSize: '80px', marginBottom: '20px' }}>
-          ✅
-        </motion.div>
-        <h2 style={{ fontSize: '28px', marginBottom: '10px', color: '#22c55e', fontWeight: 700 }}>Ordine Confermato!</h2>
-        <p style={{ color: '#333', fontSize: '18px', marginBottom: '20px' }}>Grazie per il tuo ordine</p>
-        <div
+      <div className="rashti-page">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
           style={{
-            background: '#f0fdf4',
-            border: '1px solid #bbf7d0',
-            borderRadius: '16px',
-            padding: '24px',
-            width: '100%',
-            maxWidth: '400px',
-            marginBottom: '30px',
+            padding: '40px 20px',
+            minHeight: '60vh',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            textAlign: 'center',
           }}
         >
-          <div style={{ marginBottom: '16px' }}>
-            <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '4px' }}>Numero Ordine</p>
-            <p style={{ color: '#0f172a', fontSize: '18px', fontWeight: 700 }}>{orderSuccess.orderNumber}</p>
-          </div>
-          <div style={{ marginBottom: '16px' }}>
-            <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '4px' }}>Totale</p>
-            <p style={{ color: '#22c55e', fontSize: '24px', fontWeight: 700 }}>€{orderSuccess.total.toFixed(2)}</p>
-          </div>
-          {orderSuccess.pickupCode && (
+          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: 'spring' }} style={{ fontSize: '80px', marginBottom: '20px' }}>
+            ✅
+          </motion.div>
+          <h2 className="rashti-title" style={{ fontSize: '28px', marginBottom: '10px', color: 'var(--persian-emerald)' }}>Ordine Confermato!</h2>
+          <p style={{ fontSize: '20px', marginBottom: '30px', fontFamily: 'Cormorant Garamond' }}>Grazie per il tuo ordine</p>
+          <div className="rashti-card-light" style={{ padding: '24px', width: '100%', maxWidth: '400px', marginBottom: '30px', borderRadius: '16px' }}>
             <div style={{ marginBottom: '16px' }}>
-              <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '4px' }}>Codice Ritiro</p>
-              <p style={{ color: '#b45309', fontSize: '20px', fontWeight: 600 }}>{orderSuccess.pickupCode}</p>
+              <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '1px' }}>Numero Ordine</p>
+              <p style={{ color: '#0d3d2e', fontSize: '22px', fontWeight: 700, fontFamily: 'Cinzel' }}>{orderSuccess.orderNumber}</p>
             </div>
-          )}
-          <div>
-            <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '4px' }}>Metodo di Pagamento</p>
-            <p style={{ color: '#0f172a', fontSize: '16px', fontWeight: 600 }}>
-              {orderSuccess.paymentMethod === 'pos' ? '💳 POS (Carta) alla Consegna' : '💵 Contanti alla Consegna'}
-            </p>
+            <div style={{ marginBottom: '16px' }}>
+              <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '1px' }}>Totale</p>
+              <p style={{ color: '#15803d', fontSize: '28px', fontWeight: 700, fontFamily: 'Cinzel' }}>€{orderSuccess.total.toFixed(2)}</p>
+            </div>
+            {orderSuccess.pickupCode && (
+              <div style={{ marginBottom: '16px' }}>
+                <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '1px' }}>Codice Ritiro</p>
+                <p style={{ color: '#b45309', fontSize: '24px', fontWeight: 600 }}>{orderSuccess.pickupCode}</p>
+              </div>
+            )}
+            <div>
+              <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '1px' }}>Pagamento</p>
+              <p style={{ fontSize: '18px', fontWeight: 600 }}>
+                {orderSuccess.paymentMethod === 'pos' ? '💳 POS alla Consegna' : '💵 Contanti'}
+              </p>
+            </div>
           </div>
-        </div>
-        <button
-          onClick={() => setOrderSuccess(null)}
-          style={{
-            padding: '12px 24px',
-            background: '#22c55e',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer',
-          }}
-        >
-          Torna al Menù
-        </button>
-      </motion.div>
+          <button
+            onClick={() => setOrderSuccess(null)}
+            className="rashti-btn-primary"
+            style={{ width: 'auto', padding: '0 40px' }}
+          >
+            Torna al Menù
+          </button>
+        </motion.div>
+      </div>
     );
   }
 
   // Empty cart view
   if (cart.items.length === 0) {
     return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        style={{
-          padding: '40px 0',
-          minHeight: '60vh',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          textAlign: 'center',
-        }}
-      >
-        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2 }} style={{ fontSize: '80px', marginBottom: '20px' }}>
-          🛒
+      <div className="rashti-page">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          style={{
+            padding: '40px 0',
+            minHeight: '60vh',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            textAlign: 'center',
+          }}
+        >
+          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2 }} style={{ fontSize: '80px', marginBottom: '20px' }}>
+            🛒
+          </motion.div>
+          <h2 className="rashti-title" style={{ fontSize: '24px', marginBottom: '10px', color: 'var(--persian-emerald)' }}>Il tuo carrello è vuoto</h2>
+          <p style={{ color: '#666', fontSize: '18px', fontFamily: 'Cormorant Garamond' }}>Aggiungi qualcosa dal nostro menu!</p>
         </motion.div>
-        <h2 style={{ fontSize: '24px', marginBottom: '10px', color: '#333' }}>Il tuo carrello è vuoto</h2>
-        <p style={{ color: '#666', fontSize: '16px' }}>Aggiungi qualcosa dal nostro menu!</p>
-      </motion.div>
+      </div>
     );
   }
 
   // Main UI (cart list or checkout form)
   return (
-    <div style={{ padding: '20px' }}>
-      {/* Cart list */}
-      {!showCheckout && (
-        <>
-          <motion.h2 initial={{ y: -20 }} animate={{ y: 0 }} style={{ fontSize: '28px', fontWeight: 'bold', color: '#333', textAlign: 'center', marginBottom: '30px' }}>
-            Il tuo Carrello 🛒
-          </motion.h2>
-          <AnimatePresence>
-            {cart.items.map(item => (
-              <motion.div
-                key={item.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{ duration: 0.2 }}
-                style={{
-                  background: 'rgba(255,255,255,0.9)',
-                  borderRadius: '15px',
-                  padding: '20px',
-                  marginBottom: '15px',
-                  boxShadow: '0 5px 15px rgba(0,0,0,0.1)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '15px',
-                }}
-              >
-                <div style={{ fontSize: '30px' }}>{item.image_url ? <JerseyImage src={item.image_url} alt={item.name} style={{ width: '50px', height: '50px', borderRadius: '8px', objectFit: 'cover' }} /> : '🍽️'}</div>
-                <div style={{ flex: 1 }}>
-                  <h3 style={{ margin: '0 0 5px 0', fontSize: '16px', color: '#333', fontWeight: 600 }}>{item.name}</h3>
-                  {item.isLoyaltyReward ? (
-                    <p style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#2ed573', fontWeight: 'bold' }}>✨ {item.pointsCost} Punti</p>
-                  ) : (
-                    <p style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#666' }}>€{(typeof item.price === 'string' ? parseFloat(item.price) : item.price).toFixed(2)} cad.</p>
-                  )}
-                  {/* Extras / Beverages / Special Requests */}
-                  {item.extras && item.extras.length > 0 && (
-                    <div style={{ margin: '8px 0', fontSize: '12px', color: '#22c55e', fontWeight: 600 }}>
-                      ✓ Extras: {item.extras.map(e => `${e.name} x${e.quantity}`).join(', ')}
-                    </div>
-                  )}
-                  {item.beverages && item.beverages.length > 0 && (
-                    <div style={{ margin: '8px 0', fontSize: '12px', color: '#3b82f6', fontWeight: 600 }}>
-                      🥤 Beverages: {item.beverages.map(b => `${b.name} x${b.quantity}`).join(', ')}
-                    </div>
-                  )}
-                  {item.specialRequests && (
-                    <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: '#888', fontStyle: 'italic' }}>📝 Note: {item.specialRequests}</p>
-                  )}
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                  <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={() => cart.updateQuantity(item.id, item.quantity - 1)} style={{ width: '30px', height: '30px', borderRadius: '50%', border: 'none', background: '#ff4757', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                    <Minus size={14} />
-                  </motion.button>
-                  <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>{item.quantity}</span>
-                  <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={() => cart.updateQuantity(item.id, item.quantity + 1)} style={{ width: '30px', height: '30px', borderRadius: '50%', border: 'none', background: '#2ed573', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                    <Plus size={14} />
-                  </motion.button>
-                  <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={() => cart.removeItem(item.id)} style={{ width: '30px', height: '30px', borderRadius: '50%', border: 'none', background: '#ff6b6b', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                    <Trash2 size={14} />
-                  </motion.button>
-                </div>
-                <div style={{ fontSize: '16px', fontWeight: 'bold', color: item.isLoyaltyReward ? '#2ed573' : '#FF6B6B', textAlign: 'right' }}>
-                  {item.isLoyaltyReward ? (
-                    <span>{item.pointsCost ? item.pointsCost * item.quantity : 0} Pt</span>
-                  ) : (
-                    `€${(() => {
-                      const base = typeof item.price === 'string' ? parseFloat(item.price) : item.price;
-                      let total = base * item.quantity;
-                      if (item.extras && item.extras.length > 0) {
-                        total += item.extras.reduce((sum, e) => sum + ((typeof e.price === 'string' ? parseFloat(e.price) : e.price) * e.quantity), 0);
-                      }
-                      if (item.beverages && item.beverages.length > 0) {
-                        total += item.beverages.reduce((sum, b) => sum + ((typeof b.price === 'string' ? parseFloat(b.price) : b.price) * b.quantity), 0);
-                      }
-                      return total.toFixed(2);
-                    })()}`
-                  )}
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-          {/* Order summary */}
-          <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} style={{ background: 'rgba(255,255,255,0.9)', borderRadius: '15px', padding: '20px', marginBottom: '20px', boxShadow: '0 5px 15px rgba(0,0,0,0.1)' }}>
-            <h3 style={{ margin: '0 0 15px 0', fontSize: '18px', color: '#333' }}>Riepilogo Ordine</h3>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-              <span>Subtotale ({cart.getTotalItems()} {cart.getTotalItems() === 1 ? 'prodotto' : 'prodotti'}):</span>
-              <span>€{cart.getTotalPrice().toFixed(2)}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-              <span>Costo Consegna:</span>
-              <span>€{deliveryFee.toFixed(2)}</span>
-            </div>
-            {customerInfo.paymentMethod === 'pos' && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                <span>Commissione POS:</span>
-                <span>€{POS_FEE.toFixed(2)}</span>
-              </div>
-            )}
-            <div style={{ borderTop: '1px solid #eee', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', fontSize: '18px', fontWeight: 'bold', color: '#333' }}>
-              <span>Totale:</span>
-              <span>€{(cart.getTotalPrice() + deliveryFee + (customerInfo.paymentMethod === 'pos' ? POS_FEE : 0)).toFixed(2)}</span>
-            </div>
-          </motion.div>
-          {/* Action buttons */}
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={cart.clearCart} style={{ flex: 1, padding: '15px', borderRadius: '12px', border: '2px solid #ff6b6b', background: 'transparent', color: '#ff6b6b', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer' }}>
-              Svuota Carrello
-            </motion.button>
-            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => setShowCheckout(true)} style={{ flex: 2, padding: '15px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg, #667eea, #764ba2)', color: 'white', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer' }}>
-              <ShoppingCart size={18} style={{ marginRight: '8px' }} />
-              Procedi al Checkout
-            </motion.button>
-          </div>
-        </>
-      )}
-
-      {/* Checkout form */}
-      {showCheckout && (
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          style={{ background: 'white', borderRadius: '16px', padding: '28px', boxShadow: '0 25px 50px rgba(0,0,0,0.1)', width: '100%', maxWidth: '600px', margin: '0 auto' }}
-        >
-          {/* Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-            <div>
-              <p style={{ margin: 0, fontSize: '13px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Passo 2 di 2</p>
-              <h2 style={{ margin: '6px 0 0 0', fontSize: '24px', fontWeight: 700, color: '#0f172a' }}>Checkout - {cart.items.length} prodotti</h2>
-            </div>
-            <motion.button whileHover={{ scale: 1.05 }} onClick={() => setShowCheckout(false)} style={{ border: 'none', background: '#f1f5f9', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-              <X size={18} color="#0f172a" />
-            </motion.button>
-          </div>
-
-          {/* Validation alert */}
-          {(!customerInfo.name || !customerInfo.email || !customerInfo.phone || (customerInfo.fulfillmentType === 'delivery' && !customerInfo.address)) && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', borderRadius: '10px', background: '#fff7ed', color: '#c2410c', marginBottom: '20px' }}>
-              <AlertCircle size={18} />
-              <span>Compila tutti i campi obbligatori per completare l'ordine.</span>
-            </div>
-          )}
-
-          {/* Customer info */}
-          <div style={{ marginBottom: '24px' }}>
-            <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', fontWeight: 600, color: '#0f172a' }}>Informazioni Cliente</h3>
-            <div style={{ display: 'grid', gap: '16px', gridTemplateColumns: '1fr 1fr' }}>
-              <div>
-                <label style={{ fontSize: '13px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '6px' }}>Nome Completo *</label>
-                <input type="text" value={customerInfo.name} onChange={e => setCustomerInfo(p => ({ ...p, name: e.target.value }))} placeholder="Il tuo nome completo" style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '14px' }} />
-              </div>
-              <div>
-                <label style={{ fontSize: '13px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '6px' }}>Email *</label>
-                <input type="email" value={customerInfo.email} onChange={e => setCustomerInfo(p => ({ ...p, email: e.target.value }))} placeholder="la-tua-email@esempio.com" style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '14px' }} />
-              </div>
-            </div>
-            <div style={{ marginTop: '16px', display: 'grid', gap: '16px' }}>
-              <div>
-                <label style={{ fontSize: '13px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '6px' }}>Telefono *</label>
-                <input type="tel" value={customerInfo.phone} onChange={e => setCustomerInfo(p => ({ ...p, phone: e.target.value }))} placeholder="+39 123 456 7890" style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '14px' }} />
-              </div>
-            </div>
-          </div>
-
-          {/* Fulfillment Type Selection (Tabs) */}
-          <div style={{ marginBottom: '24px' }}>
-            <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', fontWeight: 600, color: '#0f172a' }}>
-              <Clock size={16} style={{ marginRight: '8px', verticalAlign: 'middle' }} />
-              Modalità
-            </h3>
-            {(() => {
-              // Check if cart has any delivery-only items
-              const hasDeliveryOnlyItems = cart.items.some(item => item.deliveryOnly);
-
-              if (hasDeliveryOnlyItems) {
-                // If there are delivery-only items, disable/hide pickup option
-                return (
-                  <>
-                    <div
-                      style={{
-                        flex: 1,
-                        padding: '16px',
-                        borderRadius: '12px',
-                        textAlign: 'center',
-                        border: '2px solid #ea580c',
-                        background: '#fff7ed',
-                        fontWeight: 600,
-                        color: '#ea580c'
-                      }}
-                    >
-                      🛵 Consegna a Domicilio
-                    </div>
-                    <p style={{ fontSize: '13px', color: '#64748b', marginTop: '8px', fontStyle: 'italic' }}>
-                      Il carrello contiene offerte solo per consegna
-                    </p>
-                  </>
-                );
-              }
-
-              // Normal view with both options
-              return (
-                <div style={{ display: 'flex', gap: '12px' }}>
-                  <div
-                    onClick={() => setCustomerInfo(p => ({ ...p, fulfillmentType: 'delivery' }))}
-                    style={{
-                      flex: 1,
-                      padding: '16px',
-                      borderRadius: '12px',
-                      textAlign: 'center',
-                      border: customerInfo.fulfillmentType === 'delivery' ? '2px solid #ea580c' : '1px solid #e2e8f0',
-                      background: customerInfo.fulfillmentType === 'delivery' ? '#fff7ed' : 'white',
-                      cursor: 'pointer',
-                      fontWeight: 600,
-                      color: customerInfo.fulfillmentType === 'delivery' ? '#ea580c' : '#64748b'
-                    }}
-                  >
-                    🛵 Consegna a Domicilio
-                  </div>
-                  <div
-                    onClick={() => setCustomerInfo(p => ({ ...p, fulfillmentType: 'pickup' }))}
-                    style={{
-                      flex: 1,
-                      padding: '16px',
-                      borderRadius: '12px',
-                      textAlign: 'center',
-                      border: customerInfo.fulfillmentType === 'pickup' ? '2px solid #ea580c' : '1px solid #e2e8f0',
-                      background: customerInfo.fulfillmentType === 'pickup' ? '#fff7ed' : 'white',
-                      cursor: 'pointer',
-                      fontWeight: 600,
-                      color: customerInfo.fulfillmentType === 'pickup' ? '#ea580c' : '#64748b'
-                    }}
-                  >
-                    🛍️ Ritiro in Negozio
-                  </div>
-                </div>
-              );
-            })()}
-          </div>
-
-          {/* Timing Selection */}
-          <div style={{ marginBottom: '24px' }}>
-            <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', fontWeight: 600, color: '#0f172a' }}>
-              Orario {customerInfo.fulfillmentType === 'delivery' ? 'Consegna' : 'Ritiro'}
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div
-                onClick={() => setCustomerInfo(p => ({ ...p, timing: 'asap' }))}
-                style={{
-                  padding: '16px',
-                  borderRadius: '12px',
-                  border: customerInfo.timing === 'asap' ? '2px solid #22c55e' : '1px solid #e2e8f0',
-                  background: customerInfo.timing === 'asap' ? '#f0fdf4' : 'white',
-                  cursor: 'pointer'
-                }}
-              >
-                <div style={{ fontWeight: 600, color: '#15803d', marginBottom: '4px' }}>🚀 Appena Possibile</div>
-                <div style={{ fontSize: '13px', color: '#64748b' }}>Il tuo ordine sarà pronto tra circa 30 minuti</div>
-              </div>
-
-              <div
-                onClick={() => setCustomerInfo(p => ({ ...p, timing: 'scheduled' }))}
-                style={{
-                  padding: '16px',
-                  borderRadius: '12px',
-                  border: customerInfo.timing === 'scheduled' ? '2px solid #3b82f6' : '1px solid #e2e8f0',
-                  background: customerInfo.timing === 'scheduled' ? '#eff6ff' : 'white',
-                  cursor: 'pointer'
-                }}
-              >
-                <div style={{ fontWeight: 600, color: '#1d4ed8', marginBottom: '4px' }}>🕐 Orario Specifico</div>
-                <div style={{ fontSize: '13px', color: '#64748b' }}>Scegli un orario specifico</div>
-              </div>
-            </div>
-
-            {/* Specific time dropdown */}
-            {customerInfo.timing === 'scheduled' && (
-              <div style={{ marginTop: '16px' }}>
-                <label style={{ fontSize: '13px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '6px' }}>Seleziona Orario *</label>
-                <select value={customerInfo.scheduledTime} onChange={e => setCustomerInfo(p => ({ ...p, scheduledTime: e.target.value }))} style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '14px' }}>
-                  <option value="">Scegli un orario...</option>
-                  {deliveryTimeOptions.map(t => (
-                    <option key={t} value={t}>{t}</option>
-                  ))}
-                </select>
-                <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#94a3b8' }}>Orari disponibili dalle 18:00 alle 22:30</p>
-              </div>
-            )}
-          </div>
-
-          {/* Address & citofono (only for delivery) */}
-          {customerInfo.fulfillmentType === 'delivery' && (
-            <div>
-              <div style={{ marginBottom: '24px' }}>
-                <label style={{ fontSize: '13px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '6px' }}>Indirizzo di Consegna *</label>
-                <input type="text" value={customerInfo.address} onChange={e => setCustomerInfo(p => ({ ...p, address: e.target.value }))} placeholder="Via Roma 123, Torino" style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '14px' }} />
-                {isValidatingAddress && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px', color: '#6366f1' }}>
-                    <Loader2 size={14} className="animate-spin" />
-                    <span style={{ fontSize: '13px' }}>Validazione indirizzo...</span>
-                  </div>
-                )}
-                {addressValidation && (
-                  <div style={{ marginTop: '8px', padding: '10px', borderRadius: '8px', fontSize: '13px', background: addressValidation.isValid && addressValidation.isWithinZone ? '#f0fdf4' : '#fef2f2', color: addressValidation.isValid && addressValidation.isWithinZone ? '#15803d' : '#b91c1c' }}>
-                    {addressValidation.isValid && addressValidation.isWithinZone ? (
-                      <>
-                        ✅ Indirizzo valido! Consegna in {addressValidation.estimatedTime}
-                        {addressValidation.deliveryFee > 0 && (
-                          <div style={{ marginTop: '4px' }}>Costo consegna: €{addressValidation.deliveryFee.toFixed(2)}</div>
-                        )}
-                      </>
+    <div className="rashti-page" style={{ overflowY: 'auto' }}>
+      <div style={{ padding: '20px' }}>
+        {/* Cart list */}
+        {!showCheckout && (
+          <>
+            <motion.h2 initial={{ y: -20 }} animate={{ y: 0 }} className="rashti-title" style={{ fontSize: '28px', textAlign: 'center', marginBottom: '30px', color: 'var(--persian-emerald)' }}>
+              Il tuo Carrello
+            </motion.h2>
+            <AnimatePresence>
+              {cart.items.map(item => (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.2 }}
+                  className="rashti-card-light"
+                  style={{
+                    padding: '15px',
+                    marginBottom: '15px',
+                    borderRadius: '16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '15px',
+                  }}
+                >
+                  <div style={{ fontSize: '30px' }}>{item.image_url ? <JerseyImage src={item.image_url} alt={item.name} style={{ width: '50px', height: '50px', borderRadius: '8px', objectFit: 'cover' }} /> : '🍽️'}</div>
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{ margin: '0 0 5px 0', fontSize: '18px', color: '#0d3d2e', fontWeight: 600, fontFamily: 'Cinzel' }}>{item.name}</h3>
+                    {item.isLoyaltyReward ? (
+                      <p style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#2ed573', fontWeight: 'bold' }}>✨ {item.pointsCost} Punti</p>
                     ) : (
-                      <>❌ {addressValidation.error || 'Indirizzo non valido'}</>
+                      <p style={{ margin: '0 0 10px 0', fontSize: '16px', color: '#666', fontFamily: 'Cormorant Garamond', fontWeight: 600 }}>€{(typeof item.price === 'string' ? parseFloat(item.price) : item.price).toFixed(2)} cad.</p>
+                    )}
+                    {/* Extras / Beverages / Special Requests */}
+                    {item.extras && item.extras.length > 0 && (
+                      <div style={{ margin: '8px 0', fontSize: '12px', color: '#22c55e', fontWeight: 600 }}>
+                        ✓ Extras: {item.extras.map(e => `${e.name} x${e.quantity}`).join(', ')}
+                      </div>
+                    )}
+                    {item.beverages && item.beverages.length > 0 && (
+                      <div style={{ margin: '8px 0', fontSize: '12px', color: '#3b82f6', fontWeight: 600 }}>
+                        🥤 Beverages: {item.beverages.map(b => `${b.name} x${b.quantity}`).join(', ')}
+                      </div>
+                    )}
+                    {item.specialRequests && (
+                      <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: '#888', fontStyle: 'italic' }}>📝 Note: {item.specialRequests}</p>
                     )}
                   </div>
-                )}
-              </div>
-              <div>
-                <label style={{ fontSize: '13px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '6px' }}>Nome Citofono</label>
-                <input type="text" value={customerInfo.citofonoNome} onChange={e => setCustomerInfo(p => ({ ...p, citofonoNome: e.target.value }))} placeholder="Nome sul citofono (se diverso)" style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '14px' }} />
-                <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#94a3b8' }}>Inserisci il nome da suonare al citofono se diverso dal tuo</p>
-              </div>
-            </div>
-          )}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                    <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={() => cart.updateQuantity(item.id, item.quantity - 1)} style={{ width: '28px', height: '28px', borderRadius: '50%', border: '1px solid #c9a45c', background: 'transparent', color: '#c9a45c', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                      <Minus size={14} />
+                    </motion.button>
+                    <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#0d3d2e' }}>{item.quantity}</span>
+                    <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={() => cart.updateQuantity(item.id, item.quantity + 1)} style={{ width: '28px', height: '28px', borderRadius: '50%', border: 'none', background: '#c9a45c', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                      <Plus size={14} />
+                    </motion.button>
+                    <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={() => cart.removeItem(item.id)} style={{ marginTop: '5px', border: 'none', background: 'transparent', color: '#ef4444', cursor: 'pointer' }}>
+                      <Trash2 size={16} />
+                    </motion.button>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
 
-          {/* Payment info (cash only) */}
-
-          <div style={{ marginBottom: '24px' }}>
-            <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', fontWeight: 600, color: '#0f172a' }}>Metodo di Pagamento</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div
-                onClick={() => setCustomerInfo(p => ({ ...p, paymentMethod: 'cash' }))}
-                style={{
-                  padding: '16px',
-                  borderRadius: '12px',
-                  border: customerInfo.paymentMethod === 'cash' ? '2px solid #ea580c' : '1px solid #e2e8f0',
-                  background: customerInfo.paymentMethod === 'cash' ? '#fff7ed' : 'white',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px'
-                }}
-              >
-                <div style={{ fontSize: '20px' }}>💵</div>
-                <div>
-                  <div style={{ fontWeight: 600, color: '#ea580c' }}>Contanti alla Consegna</div>
-                  <div style={{ fontSize: '13px', color: '#64748b' }}>Paga direttamente al rider in contanti</div>
-                </div>
-              </div>
-
-              <div
-                onClick={() => setCustomerInfo(p => ({ ...p, paymentMethod: 'pos' }))}
-                style={{
-                  padding: '16px',
-                  borderRadius: '12px',
-                  border: customerInfo.paymentMethod === 'pos' ? '2px solid #ea580c' : '1px solid #e2e8f0',
-                  background: customerInfo.paymentMethod === 'pos' ? '#fff7ed' : 'white',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px'
-                }}
-              >
-                <div style={{ fontSize: '20px' }}>💳</div>
-                <div>
-                  <div style={{ fontWeight: 600, color: '#ea580c' }}>POS (Carta) alla Consegna</div>
-                  <div style={{ fontSize: '13px', color: '#64748b' }}>Paga con carta al rider (+€{POS_FEE.toFixed(2)} commissione)</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Promo code */}
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ fontSize: '13px', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '6px' }}>Codice Promozionale</label>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <input type="text" value={promoCode} onChange={e => setPromoCode(e.target.value.toUpperCase())} placeholder="Inserisci codice" style={{ flex: 1, padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '14px', textTransform: 'uppercase' }} />
-            </div>
-          </div>
-
-          {/* Order summary (same as above) */}
-          <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} style={{ background: 'rgba(255,255,255,0.9)', borderRadius: '15px', padding: '20px', marginBottom: '20px', boxShadow: '0 5px 15px rgba(0,0,0,0.1)' }}>
-            <h3 style={{ margin: '0 0 15px 0', fontSize: '18px', color: '#333' }}>Riepilogo Ordine</h3>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-              <span>Subtotale ({cart.getTotalItems()} {cart.getTotalItems() === 1 ? 'prodotto' : 'prodotti'}):</span>
-              <span>€{cart.getTotalPrice().toFixed(2)}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-              <span>Costo Consegna:</span>
-              <span>€{deliveryFee.toFixed(2)}</span>
-            </div>
-            {customerInfo.paymentMethod === 'pos' && (
+            {/* Order summary */}
+            <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="rashti-card-light" style={{ padding: '20px', marginBottom: '20px', borderRadius: '16px' }}>
+              <h3 className="rashti-title" style={{ margin: '0 0 15px 0', fontSize: '18px', borderBottom: '1px solid #eee', paddingBottom: '10px', color: '#0d3d2e' }}>Riepilogo</h3>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                <span>Commissione POS:</span>
-                <span>€{POS_FEE.toFixed(2)}</span>
+                <span style={{ fontFamily: 'Cormorant Garamond', fontSize: '18px' }}>Subtotale:</span>
+                <span style={{ fontWeight: 'bold', fontSize: '18px' }}>€{cart.getTotalPrice().toFixed(2)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                <span style={{ fontFamily: 'Cormorant Garamond', fontSize: '18px' }}>Consegna:</span>
+                <span style={{ fontWeight: 'bold', fontSize: '18px' }}>€{deliveryFee.toFixed(2)}</span>
+              </div>
+              {customerInfo.paymentMethod === 'pos' && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                  <span style={{ fontFamily: 'Cormorant Garamond', fontSize: '18px' }}>Commissione POS:</span>
+                  <span style={{ fontWeight: 'bold', fontSize: '18px' }}>€{POS_FEE.toFixed(2)}</span>
+                </div>
+              )}
+              <div style={{ borderTop: '2px solid #f5f5f5', paddingTop: '15px', marginTop: '10px', display: 'flex', justifyContent: 'space-between', fontSize: '22px', fontWeight: 'bold', color: '#0d3d2e' }}>
+                <span className="font-cinzel">Totale:</span>
+                <span className="font-cinzel">€{(cart.getTotalPrice() + deliveryFee + (customerInfo.paymentMethod === 'pos' ? POS_FEE : 0)).toFixed(2)}</span>
+              </div>
+            </motion.div>
+
+            {/* Action buttons */}
+            <div style={{ display: 'flex', gap: '15px', flexDirection: 'column' }}>
+              <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => setShowCheckout(true)} className="rashti-btn-primary" style={{ width: '100%', height: '54px', fontSize: '16px' }}>
+                <ShoppingCart size={20} style={{ marginRight: '8px' }} />
+                Procedi al Checkout
+              </motion.button>
+
+              <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={cart.clearCart} style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid #ef4444', background: 'transparent', color: '#ef4444', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer', fontFamily: 'Cinzel' }}>
+                Svuota Carrello
+              </motion.button>
+            </div>
+          </>
+        )}
+
+        {/* Checkout form */}
+        {showCheckout && (
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="rashti-card-light"
+            style={{ borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '600px', margin: '0 auto' }}
+          >
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <div>
+                <p style={{ margin: 0, fontSize: '12px', color: '#c9a45c', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 'bold' }}>Passo 2 di 2</p>
+                <h2 className="rashti-title" style={{ margin: '6px 0 0 0', fontSize: '24px', color: '#0d3d2e' }}>Checkout</h2>
+              </div>
+              <motion.button whileHover={{ scale: 1.1 }} onClick={() => setShowCheckout(false)} style={{ border: 'none', background: '#f5f5f5', width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                <X size={18} color="#333" />
+              </motion.button>
+            </div>
+
+            {/* Validation alert */}
+            {(!customerInfo.name || !customerInfo.email || !customerInfo.phone || (customerInfo.fulfillmentType === 'delivery' && !customerInfo.address)) && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', borderRadius: '10px', background: '#fff7ed', color: '#c2410c', marginBottom: '20px', fontSize: '13px' }}>
+                <AlertCircle size={18} />
+                <span>Compila i campi obbligatori.</span>
               </div>
             )}
-            <div style={{ borderTop: '1px solid #eee', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', fontSize: '18px', fontWeight: 'bold', color: '#333' }}>
-              <span>Totale:</span>
-              <span>€{(cart.getTotalPrice() + deliveryFee + (customerInfo.paymentMethod === 'pos' ? POS_FEE : 0)).toFixed(2)}</span>
+
+            {/* Customer info */}
+            <div style={{ marginBottom: '24px' }}>
+              <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', fontWeight: 600, color: '#0d3d2e', fontFamily: 'Cinzel' }}>Tuoi Dati</h3>
+              <div style={{ display: 'grid', gap: '16px' }}>
+                <div>
+                  <input type="text" value={customerInfo.name} onChange={e => setCustomerInfo(p => ({ ...p, name: e.target.value }))} placeholder="Nome Completo *" className="rashti-input" style={{ background: 'white', borderColor: '#e2e8f0', color: '#333' }} />
+                </div>
+                <div>
+                  <input type="email" value={customerInfo.email} onChange={e => setCustomerInfo(p => ({ ...p, email: e.target.value }))} placeholder="Email *" className="rashti-input" style={{ background: 'white', borderColor: '#e2e8f0', color: '#333' }} />
+                </div>
+                <div>
+                  <input type="tel" value={customerInfo.phone} onChange={e => setCustomerInfo(p => ({ ...p, phone: e.target.value }))} placeholder="Telefono *" className="rashti-input" style={{ background: 'white', borderColor: '#e2e8f0', color: '#333' }} />
+                </div>
+              </div>
+            </div>
+
+            {/* Fulfillment Type Selection (Tabs) */}
+            <div style={{ marginBottom: '24px' }}>
+              <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', fontWeight: 600, color: '#0d3d2e', fontFamily: 'Cinzel' }}>Modalità</h3>
+              {(() => {
+                const hasDeliveryOnlyItems = cart.items.some(item => item.deliveryOnly);
+                if (hasDeliveryOnlyItems) {
+                  return (
+                    <>
+                      <div style={{ padding: '16px', borderRadius: '12px', textAlign: 'center', border: '2px solid #ea580c', background: '#fff7ed', fontWeight: 600, color: '#ea580c' }}>
+                        🛵 Consegna a Domicilio
+                      </div>
+                      <p style={{ fontSize: '12px', color: '#64748b', marginTop: '8px', fontStyle: 'italic' }}>Articoli solo per consegna.</p>
+                    </>
+                  );
+                }
+                return (
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    <div
+                      onClick={() => setCustomerInfo(p => ({ ...p, fulfillmentType: 'delivery' }))}
+                      style={{
+                        flex: 1, padding: '12px', borderRadius: '12px', textAlign: 'center', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s',
+                        border: customerInfo.fulfillmentType === 'delivery' ? '2px solid #c9a45c' : '1px solid #e2e8f0',
+                        background: customerInfo.fulfillmentType === 'delivery' ? '#fffef0' : 'white',
+                        color: customerInfo.fulfillmentType === 'delivery' ? '#0d3d2e' : '#64748b'
+                      }}
+                    >
+                      🛵 Domicilio
+                    </div>
+                    <div
+                      onClick={() => setCustomerInfo(p => ({ ...p, fulfillmentType: 'pickup' }))}
+                      style={{
+                        flex: 1, padding: '12px', borderRadius: '12px', textAlign: 'center', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s',
+                        border: customerInfo.fulfillmentType === 'pickup' ? '2px solid #c9a45c' : '1px solid #e2e8f0',
+                        background: customerInfo.fulfillmentType === 'pickup' ? '#fffef0' : 'white',
+                        color: customerInfo.fulfillmentType === 'pickup' ? '#0d3d2e' : '#64748b'
+                      }}
+                    >
+                      🛍️ Ritiro
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Timing Selection */}
+            <div style={{ marginBottom: '24px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div
+                  onClick={() => setCustomerInfo(p => ({ ...p, timing: 'asap' }))}
+                  style={{
+                    padding: '14px', borderRadius: '12px', cursor: 'pointer',
+                    border: customerInfo.timing === 'asap' ? '2px solid #c9a45c' : '1px solid #e2e8f0',
+                    background: customerInfo.timing === 'asap' ? '#fffef0' : 'white',
+                  }}
+                >
+                  <div style={{ fontWeight: 600, color: '#0d3d2e', marginBottom: '4px' }}>🚀 Appena Possibile</div>
+                  <div style={{ fontSize: '13px', color: '#64748b' }}>~30 minuti</div>
+                </div>
+
+                <div
+                  onClick={() => setCustomerInfo(p => ({ ...p, timing: 'scheduled' }))}
+                  style={{
+                    padding: '14px', borderRadius: '12px', cursor: 'pointer',
+                    border: customerInfo.timing === 'scheduled' ? '2px solid #c9a45c' : '1px solid #e2e8f0',
+                    background: customerInfo.timing === 'scheduled' ? '#fffef0' : 'white',
+                  }}
+                >
+                  <div style={{ fontWeight: 600, color: '#0d3d2e', marginBottom: '4px' }}>🕐 Orario Specifico</div>
+                </div>
+              </div>
+
+              {/* Specific time dropdown */}
+              {customerInfo.timing === 'scheduled' && (
+                <div style={{ marginTop: '16px' }}>
+                  <select value={customerInfo.scheduledTime} onChange={e => setCustomerInfo(p => ({ ...p, scheduledTime: e.target.value }))} className="rashti-input" style={{ width: '100%', padding: '12px', background: 'white', borderColor: '#e2e8f0', color: '#333' }}>
+                    <option value="">Scegli un orario...</option>
+                    {deliveryTimeOptions.map(t => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+
+            {/* Address & citofono (only for delivery) */}
+            {customerInfo.fulfillmentType === 'delivery' && (
+              <div style={{ marginBottom: '24px' }}>
+                <div style={{ marginBottom: '16px' }}>
+                  <input type="text" value={customerInfo.address} onChange={e => setCustomerInfo(p => ({ ...p, address: e.target.value }))} placeholder="Indirizzo (Via, Numero, Città) *" className="rashti-input" style={{ background: 'white', borderColor: '#e2e8f0', color: '#333' }} />
+                  {isValidatingAddress && <div style={{ fontSize: '12px', color: '#c9a45c', marginTop: '5px' }}>Validazione in corso...</div>}
+                </div>
+                <div>
+                  <input type="text" value={customerInfo.citofonoNome} onChange={e => setCustomerInfo(p => ({ ...p, citofonoNome: e.target.value }))} placeholder="Nome Citofono" className="rashti-input" style={{ background: 'white', borderColor: '#e2e8f0', color: '#333' }} />
+                </div>
+              </div>
+            )}
+
+            {/* Payment info */}
+            <div style={{ marginBottom: '24px' }}>
+              <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', fontWeight: 600, color: '#0d3d2e', fontFamily: 'Cinzel' }}>Pagamento</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div
+                  onClick={() => setCustomerInfo(p => ({ ...p, paymentMethod: 'cash' }))}
+                  style={{
+                    padding: '14px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px',
+                    border: customerInfo.paymentMethod === 'cash' ? '2px solid #c9a45c' : '1px solid #e2e8f0',
+                    background: customerInfo.paymentMethod === 'cash' ? '#fffef0' : 'white',
+                  }}
+                >
+                  <div style={{ fontSize: '20px' }}>💵</div>
+                  <div>
+                    <div style={{ fontWeight: 600, color: '#0d3d2e' }}>Contanti</div>
+                  </div>
+                </div>
+
+                <div
+                  onClick={() => setCustomerInfo(p => ({ ...p, paymentMethod: 'pos' }))}
+                  style={{
+                    padding: '14px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px',
+                    border: customerInfo.paymentMethod === 'pos' ? '2px solid #c9a45c' : '1px solid #e2e8f0',
+                    background: customerInfo.paymentMethod === 'pos' ? '#fffef0' : 'white',
+                  }}
+                >
+                  <div style={{ fontSize: '20px' }}>💳</div>
+                  <div>
+                    <div style={{ fontWeight: 600, color: '#0d3d2e' }}>POS (Carta)</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Promo code */}
+            <div style={{ marginBottom: '20px' }}>
+              <input type="text" value={promoCode} onChange={e => setPromoCode(e.target.value.toUpperCase())} placeholder="Codice Promo" className="rashti-input" style={{ flex: 1, background: 'white', borderColor: '#e2e8f0', color: '#333', textTransform: 'uppercase' }} />
+            </div>
+
+            {/* Action buttons */}
+            <div style={{ display: 'flex', gap: '10px', flexDirection: 'column' }}>
+              <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleCheckout} disabled={isSubmitting} className="rashti-btn-primary" style={{ width: '100%', height: '54px', fontSize: '16px' }}>
+                {isSubmitting ? <Loader2 className="animate-spin" size={16} /> : 'CONFERMA ORDINE'}
+              </motion.button>
             </div>
           </motion.div>
-
-          {/* Action buttons */}
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={cart.clearCart} style={{ flex: 1, padding: '15px', borderRadius: '12px', border: '2px solid #ff6b6b', background: 'transparent', color: '#ff6b6b', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer' }}>
-              Svuota Carrello
-            </motion.button>
-            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleCheckout} disabled={isSubmitting} style={{ flex: 2, padding: '15px', borderRadius: '12px', background: '#22c55e', color: 'white', border: 'none', fontSize: '16px', fontWeight: 'bold', cursor: isSubmitting ? 'not-allowed' : 'pointer' }}>
-              {isSubmitting ? <Loader2 className="animate-spin" size={16} /> : 'Conferma Ordine'}
-            </motion.button>
-          </div>
-        </motion.div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

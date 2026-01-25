@@ -133,50 +133,48 @@ function App() {
       const mobile = width <= 768;
       setIsMobile(mobile);
 
-      // Button sizes slightly increased per user request
-      const buttonSize = width <= 400 ? 60 : mobile ? 72 : 90;
+      // Button sizes
+      const buttonSize = width <= 380 ? 55 : width <= 480 ? 65 : mobile ? 75 : 90;
       setNavButtonSize(buttonSize);
 
-      const minCircleRadius = buttonSize; // keep centre content reasonable
-      const maxInitialCircle = Math.min(width - 60, 350) / 2;
-      const baseCircleRadius = Math.max(minCircleRadius, maxInitialCircle);
+      // Margins and Gaps
+      const screenMargin = 15; // Minimum distance from button edge to screen edge
+      const buttonGap = 20; // Gap between central circle and buttons
 
-      // Safer margins to prevent cut-off
-      const margin = 25;
+      // 1. Calculate the maximum radius allowed for the button CENTERS
+      // This is constrained by the screen edges
+      const maxRadiusX = (width / 2) - (buttonSize / 2) - screenMargin;
+      const maxRadiusY = (height / 2) - (buttonSize / 2) - screenMargin;
+      const safeNavRadius = Math.min(maxRadiusX, maxRadiusY);
 
-      // Calculate max possible radius that fits in viewport with margins
-      // Subtract (buttonSize/2 + margin) from center to edge
-      const maxRadiusX = (width / 2) - (buttonSize / 2) - margin;
-      const maxRadiusY = (height / 2) - (buttonSize / 2) - margin;
+      // 2. Determine ideal central circle size
+      // We want it roughly 350px max dia, or proportional to screen
+      const maxCentralDia = Math.min(width * 0.5, 300);
+      let targetCentralRadius = maxCentralDia / 2;
 
-      // Use the smaller dimension to constrain the circle (usually width on mobile)
-      const safeMaxRadius = Math.min(maxRadiusX, maxRadiusY);
+      // 3. Check if this target sizing fits within the safeNavRadius with the required gap
+      // safeNavRadius = centralRadius + gap + buttonSize/2
+      // So: maxAvailableCentralRadius = safeNavRadius - gap - buttonSize/2
+      const maxAvailableCentralRadius = safeNavRadius - buttonGap - (buttonSize / 2);
 
-      // Determine center circle size
-      // We want buttons to be ~25px away from center circle (increased from 15)
-      const gap = 25;
+      // 4. Set final central radius, clamped to what's available
+      // But ensure it doesn't get ridiculously small (min 60px radius)
+      let finalCircleRadius = Math.min(targetCentralRadius, maxAvailableCentralRadius);
+      finalCircleRadius = Math.max(finalCircleRadius, 60);
 
-      let finalCircleRadius = Math.min(baseCircleRadius, safeMaxRadius - buttonSize - gap);
-
-      // Ensure center logo isn't too small
-      finalCircleRadius = Math.max(finalCircleRadius, buttonSize * 1.1);
+      // 5. Recalculate the Nav Radius based on the constrained central radius
+      // We prioritize the gap over the screen margin if we hit the minimum central size
+      // (This means buttons might get closer to edge, but won't overlap center)
+      let finalNavRadius = finalCircleRadius + buttonGap + (buttonSize / 2);
 
       setCollapsedSize(finalCircleRadius * 2);
+      setNavRadius(finalNavRadius);
 
-      // Set nav radius relative to the confirmed safe center circle
-      const finalRadius = finalCircleRadius + (buttonSize / 2) + gap;
-
-      // Double check it fits
-      const constrainedRadius = Math.min(finalRadius, safeMaxRadius);
-
-      setNavRadius(constrainedRadius);
-
-      // On mobile, expand to fill the entire screen
+      // Expand dimensions
       if (mobile) {
         setExpandedWidth(width);
         setExpandedHeight(height);
       } else {
-        // Desktop: Card style
         setExpandedWidth(Math.min(width - 80, 1200));
         setExpandedHeight(Math.min(height - 80, 900));
       }
@@ -220,10 +218,11 @@ function App() {
         <div className="app">
           {/* Clean Static Background */}
           <div className="background-static">
-            {/* Static Pizza Images */}
+            {/* Static Pizza Images - Commented out for full background image
             <img src="/pizza-1.png" alt="" className="bg-pizza pizza-top-left" />
             <img src="/pizza-2.png" alt="" className="bg-pizza pizza-bottom-right" />
             <img src="/pizza-3.png" alt="" className="bg-pizza pizza-bottom-left" />
+            */}
           </div>
 
           {/* Central Circle Container */}

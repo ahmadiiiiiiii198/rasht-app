@@ -84,7 +84,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => 
                         ? crypto.randomUUID()
                         : `user_${Date.now()}`,
                     username: formData.username,
-                    password: formData.password, // NOTE: In production, this should be hashed!
+                    password: formData.password, // In production, this should be hashed!
                     full_name: formData.fullName,
                     email: `${formData.username}@customer.local`, // Generate placeholder email
                     preferences: {
@@ -134,7 +134,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => 
                         left: 0,
                         right: 0,
                         bottom: 0,
-                        background: 'rgba(0,0,0,0.6)',
+                        background: 'rgba(5, 26, 20, 0.9)', // Emerald Dark overlay
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -149,21 +149,22 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => 
                         animate={{ scale: 1, opacity: 1, y: 0 }}
                         exit={{ scale: 0.9, opacity: 0, y: 20 }}
                         style={{
-                            background: 'white',
+                            background: '#fffef5', // Cream
                             borderRadius: '24px',
                             width: '100%',
                             maxWidth: '380px',
                             overflow: 'hidden',
-                            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+                            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+                            border: '1px solid #c9a45c' // Gold border
                         }}
                         onClick={e => e.stopPropagation()}
                     >
                         {/* Header with Tabs */}
                         <div style={{
-                            background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                            background: 'linear-gradient(135deg, #0d3d2e 0%, #1a5c48 100%)', // Emerald Gradient
                             padding: '25px 20px 0 20px',
                             textAlign: 'center',
-                            color: 'white',
+                            color: '#c9a45c', // Gold text
                             position: 'relative'
                         }}>
                             <button
@@ -172,9 +173,9 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => 
                                     position: 'absolute',
                                     top: '15px',
                                     right: '15px',
-                                    background: 'rgba(255,255,255,0.2)',
+                                    background: 'rgba(201, 164, 92, 0.2)', // Gold tint
                                     border: 'none',
-                                    color: 'white',
+                                    color: '#c9a45c',
                                     cursor: 'pointer',
                                     width: '32px',
                                     height: '32px',
@@ -189,11 +190,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => 
                             </button>
 
                             <div style={{ marginBottom: '20px' }}>
-                                <h2 style={{ margin: '0 0 5px 0', fontSize: '24px', fontWeight: 'bold' }}>
-                                    {mode === 'login' ? 'Welcome Back' : 'Create Account'}
+                                <h2 style={{ margin: '0 0 5px 0', fontSize: '24px', fontWeight: 'bold', fontFamily: 'Cinzel' }}>
+                                    {mode === 'login' ? 'Bentornato' : 'Crea Account'}
                                 </h2>
-                                <p style={{ margin: 0, opacity: 0.9, fontSize: '14px' }}>
-                                    {mode === 'login' ? 'Login to access your offers' : 'Join us to unlock special offers!'}
+                                <p style={{ margin: 0, opacity: 0.9, fontSize: '14px', fontFamily: 'Cormorant Garamond', color: '#e5e7eb' }}>
+                                    {mode === 'login' ? 'Accedi per le tue offerte' : 'Unisciti a noi per offerte speciali!'}
                                 </p>
                             </div>
 
@@ -204,8 +205,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => 
                                     style={{
                                         flex: 1,
                                         padding: '12px',
-                                        background: mode === 'login' ? 'white' : 'rgba(255,255,255,0.2)',
-                                        color: mode === 'login' ? '#667eea' : 'white',
+                                        background: mode === 'login' ? '#fffef5' : 'rgba(255,255,255,0.1)',
+                                        color: mode === 'login' ? '#0d3d2e' : '#c9a45c',
                                         border: 'none',
                                         borderRadius: '12px 12px 0 0',
                                         fontWeight: '600',
@@ -215,7 +216,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => 
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        gap: '6px'
+                                        gap: '6px',
+                                        fontFamily: 'Cinzel'
                                     }}
                                 >
                                     <LogIn size={16} /> Login
@@ -225,8 +227,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => 
                                     style={{
                                         flex: 1,
                                         padding: '12px',
-                                        background: mode === 'signup' ? 'white' : 'rgba(255,255,255,0.2)',
-                                        color: mode === 'signup' ? '#667eea' : 'white',
+                                        background: mode === 'signup' ? '#fffef5' : 'rgba(255,255,255,0.1)',
+                                        color: mode === 'signup' ? '#0d3d2e' : '#c9a45c',
                                         border: 'none',
                                         borderRadius: '12px 12px 0 0',
                                         fontWeight: '600',
@@ -236,16 +238,17 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => 
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        gap: '6px'
+                                        gap: '6px',
+                                        fontFamily: 'Cinzel'
                                     }}
                                 >
-                                    <UserPlus size={16} /> Sign Up
+                                    <UserPlus size={16} /> Registrati
                                 </button>
                             </div>
                         </div>
 
                         {/* Form */}
-                        <div style={{ padding: '30px', background: 'white' }}>
+                        <div style={{ padding: '30px', background: '#fffef5' }}>
                             <form onSubmit={handleSubmit}>
                                 {error && (
                                     <motion.div
@@ -272,80 +275,65 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => 
 
                                 {mode === 'signup' && (
                                     <div style={{ marginBottom: '15px' }}>
-                                        <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#666', marginBottom: '8px', paddingLeft: '4px' }}>Full Name</label>
+                                        <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#666', marginBottom: '8px', paddingLeft: '4px', fontFamily: 'Cinzel' }}>Nome Completo</label>
                                         <div style={{ position: 'relative' }}>
-                                            <User style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#A0AEC0' }} size={18} />
+                                            <User style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#c9a45c' }} size={18} />
                                             <input
                                                 type="text"
-                                                placeholder="John Doe"
+                                                placeholder="Mario Rossi"
                                                 value={formData.fullName}
                                                 onChange={e => setFormData({ ...formData, fullName: e.target.value })}
+                                                className="rashti-input"
                                                 style={{
                                                     width: '100%',
                                                     padding: '12px 12px 12px 42px',
-                                                    borderRadius: '12px',
-                                                    border: '2px solid #EDF2F7',
-                                                    fontSize: '15px',
-                                                    outline: 'none',
-                                                    boxSizing: 'border-box',
-                                                    transition: 'border-color 0.2s',
-                                                    color: '#2D3748'
+                                                    background: 'white',
+                                                    borderColor: '#e2e8f0',
+                                                    color: '#333'
                                                 }}
-                                                onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                                                onBlur={(e) => e.target.style.borderColor = '#EDF2F7'}
                                             />
                                         </div>
                                     </div>
                                 )}
 
                                 <div style={{ marginBottom: '15px' }}>
-                                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#666', marginBottom: '8px', paddingLeft: '4px' }}>Username</label>
+                                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#666', marginBottom: '8px', paddingLeft: '4px', fontFamily: 'Cinzel' }}>Username</label>
                                     <div style={{ position: 'relative' }}>
-                                        <User style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#A0AEC0' }} size={18} />
+                                        <User style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#c9a45c' }} size={18} />
                                         <input
                                             type="text"
-                                            placeholder="johndoe"
+                                            placeholder="mariorossi"
                                             value={formData.username}
                                             onChange={e => setFormData({ ...formData, username: e.target.value.toLowerCase().replace(/\s/g, '') })}
+                                            className="rashti-input"
                                             style={{
                                                 width: '100%',
                                                 padding: '12px 12px 12px 42px',
-                                                borderRadius: '12px',
-                                                border: '2px solid #EDF2F7',
-                                                fontSize: '15px',
-                                                outline: 'none',
-                                                boxSizing: 'border-box',
-                                                transition: 'border-color 0.2s',
-                                                color: '#2D3748'
+                                                background: 'white',
+                                                borderColor: '#e2e8f0',
+                                                color: '#333'
                                             }}
-                                            onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                                            onBlur={(e) => e.target.style.borderColor = '#EDF2F7'}
                                         />
                                     </div>
                                 </div>
 
                                 <div style={{ marginBottom: mode === 'signup' ? '15px' : '25px' }}>
-                                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#666', marginBottom: '8px', paddingLeft: '4px' }}>Password</label>
+                                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#666', marginBottom: '8px', paddingLeft: '4px', fontFamily: 'Cinzel' }}>Password</label>
                                     <div style={{ position: 'relative' }}>
-                                        <Lock style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#A0AEC0' }} size={18} />
+                                        <Lock style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#c9a45c' }} size={18} />
                                         <input
                                             type={showPassword ? 'text' : 'password'}
                                             placeholder="••••••••"
                                             value={formData.password}
                                             onChange={e => setFormData({ ...formData, password: e.target.value })}
+                                            className="rashti-input"
                                             style={{
                                                 width: '100%',
                                                 padding: '12px 42px 12px 42px',
-                                                borderRadius: '12px',
-                                                border: '2px solid #EDF2F7',
-                                                fontSize: '15px',
-                                                outline: 'none',
-                                                boxSizing: 'border-box',
-                                                transition: 'border-color 0.2s',
-                                                color: '#2D3748'
+                                                background: 'white',
+                                                borderColor: '#e2e8f0',
+                                                color: '#333'
                                             }}
-                                            onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                                            onBlur={(e) => e.target.style.borderColor = '#EDF2F7'}
                                         />
                                         <button
                                             type="button"
@@ -358,7 +346,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => 
                                                 background: 'none',
                                                 border: 'none',
                                                 cursor: 'pointer',
-                                                color: '#A0AEC0',
+                                                color: '#c9a45c',
                                                 padding: '4px',
                                                 display: 'flex',
                                                 alignItems: 'center'
@@ -372,39 +360,30 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => 
                                 <button
                                     type="submit"
                                     disabled={loading}
+                                    className="rashti-btn-primary"
                                     style={{
                                         width: '100%',
-                                        background: 'linear-gradient(135deg, #667eea, #764ba2)',
-                                        color: 'white',
-                                        padding: '14px',
-                                        borderRadius: '12px',
-                                        fontSize: '16px',
-                                        fontWeight: '600',
-                                        border: 'none',
-                                        cursor: loading ? 'not-allowed' : 'pointer',
-                                        opacity: loading ? 0.7 : 1,
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
                                         gap: '10px',
-                                        boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
                                         marginTop: '10px'
                                     }}
                                 >
                                     {loading ? (
                                         <>
                                             <Loader2 className="animate-spin" size={20} />
-                                            {mode === 'login' ? 'Logging in...' : 'Creating Account...'}
+                                            {mode === 'login' ? 'Accesso...' : 'Creazione...'}
                                         </>
                                     ) : (
-                                        mode === 'login' ? 'Login' : 'Create Account'
+                                        mode === 'login' ? 'Accedi' : 'Crea Account'
                                     )}
                                 </button>
 
-                                <p style={{ textAlign: 'center', fontSize: '12px', color: '#A0AEC0', marginTop: '20px' }}>
+                                <p style={{ textAlign: 'center', fontSize: '12px', color: '#666', marginTop: '20px', fontFamily: 'Cormorant Garamond' }}>
                                     {mode === 'login'
-                                        ? "Don't have an account? Switch to Sign Up tab."
-                                        : "Already have an account? Switch to Login tab."}
+                                        ? "Non hai un account? Registrati."
+                                        : "Hai già un account? Accedi."}
                                 </p>
                             </form>
                         </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Phone, Mail, Clock, Star, MessageSquare, Send } from 'lucide-react';
-import { supabase, Comment, SiteContent } from '../lib/supabase';
+import { supabase, Comment } from '../lib/supabase';
 
 interface ContactInfo {
   address: string;
@@ -14,14 +14,12 @@ interface ContactInfo {
   };
 }
 
-// Using Comment interface from database instead of local Review interface
-
 const ContattiPage: React.FC = () => {
   const [contactInfo, setContactInfo] = useState<ContactInfo>({
     address: "Via Roma, 10128 Torino TO, Italy",
     phone: "+39 02 1234 5678",
     email: "info@timeoutpizza.com",
-    hours: "Mon-Sun: 11:00 AM - 11:00 PM"
+    hours: "Lun-Dom: 11:00 - 23:00"
   });
   const [reviews, setReviews] = useState<Comment[]>([]);
   const [newReview, setNewReview] = useState({
@@ -39,7 +37,6 @@ const ContattiPage: React.FC = () => {
 
   const loadContactInfo = async () => {
     try {
-      // 1. Try fetching from 'settings' table (preferred)
       const { data: settingsData } = await supabase
         .from('settings')
         .select('value')
@@ -47,7 +44,6 @@ const ContattiPage: React.FC = () => {
         .single();
 
       if (settingsData?.value) {
-        // value is typically JSONB, Supabase client parses it automatically
         const info = typeof settingsData.value === 'string'
           ? JSON.parse(settingsData.value)
           : settingsData.value;
@@ -59,21 +55,6 @@ const ContattiPage: React.FC = () => {
           hours: info.hours || contactInfo.hours,
           coordinates: info.coordinates
         });
-        return; // Success
-      }
-
-      // 2. Fallback: try content_sections or site_content (legacy)
-      const { data: altData } = await supabase
-        .from('content_sections')
-        .select('*')
-        .eq('section_key', 'contact_info'); // Adjusted to section_key if that's the column name
-
-      if (altData && altData.length > 0) {
-        // ... existing fallback logic ...
-        const contactData = altData[0];
-        const additionalData = contactData.metadata || contactData.content_value; // Check metadata or content_value
-
-        // ... parsing logic ...
       }
     } catch (error) {
       console.error('Error loading contact info:', error);
@@ -102,7 +83,7 @@ const ContattiPage: React.FC = () => {
 
   const submitReview = async () => {
     if (!newReview.name.trim() || !newReview.comment.trim()) {
-      alert('Please fill in all fields');
+      alert('Compila tutti i campi');
       return;
     }
 
@@ -120,11 +101,11 @@ const ContattiPage: React.FC = () => {
 
       if (error) throw error;
 
-      alert('Thank you for your review! It will be published after approval.');
+      alert('Grazie per la tua recensione! Sarà pubblicata dopo approvazione.');
       setNewReview({ name: '', rating: 5, comment: '' });
     } catch (error) {
       console.error('Error submitting review:', error);
-      alert('Failed to submit review. Please try again.');
+      alert('Errore nell\'invio. Riprova.');
     } finally {
       setSubmitting(false);
     }
@@ -135,15 +116,15 @@ const ContattiPage: React.FC = () => {
       <Star
         key={i}
         size={16}
-        fill={i < rating ? '#FFD700' : 'none'}
-        color={i < rating ? '#FFD700' : '#ddd'}
+        fill={i < rating ? '#c9a45c' : 'none'}
+        color={i < rating ? '#c9a45c' : '#ddd'}
       />
     ));
   };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString('it-IT', {
       month: 'short',
       day: 'numeric',
       year: 'numeric'
@@ -151,350 +132,251 @@ const ContattiPage: React.FC = () => {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      style={{ padding: '40px 20px', height: '100%', overflow: 'auto' }}
-    >
-      <motion.h2
-        initial={{ y: -20 }}
-        animate={{ y: 0 }}
-        style={{
-          fontSize: '28px',
-          fontWeight: 'bold',
-          color: '#333',
-          textAlign: 'center',
-          marginBottom: '30px'
-        }}
-      >
-        Contact Us 📞
-      </motion.h2>
-
-      {/* Contact Information Cards */}
-      <div style={{ display: 'grid', gap: '20px', marginBottom: '40px' }}>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          style={{
-            background: 'rgba(255, 255, 255, 0.9)',
-            borderRadius: '20px',
-            padding: '25px',
-            boxShadow: '0 5px 20px rgba(0,0,0,0.1)',
-            border: '1px solid rgba(255,255,255,0.3)'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '15px' }}>
-            <div style={{
-              width: '50px',
-              height: '50px',
-              borderRadius: '12px',
-              background: 'linear-gradient(135deg, #FF6B6B, #ff8e53)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white'
-            }}>
-              <MapPin size={24} />
-            </div>
-            <div>
-              <h3 style={{ margin: 0, fontSize: '18px', color: '#333' }}>Address</h3>
-              <p style={{ margin: '5px 0 0 0', fontSize: '14px', color: '#666' }}>
-                {contactInfo.address}
-              </p>
-            </div>
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          style={{
-            background: 'rgba(255, 255, 255, 0.9)',
-            borderRadius: '20px',
-            padding: '25px',
-            boxShadow: '0 5px 20px rgba(0,0,0,0.1)',
-            border: '1px solid rgba(255,255,255,0.3)'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <div style={{
-              width: '50px',
-              height: '50px',
-              borderRadius: '12px',
-              background: 'linear-gradient(135deg, #4ECDC4, #44A08D)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white'
-            }}>
-              <Phone size={24} />
-            </div>
-            <div>
-              <h3 style={{ margin: 0, fontSize: '18px', color: '#333' }}>Phone</h3>
-              <p style={{ margin: '5px 0 0 0', fontSize: '14px', color: '#666' }}>
-                <a href={`tel:${contactInfo.phone}`} style={{ color: '#4ECDC4', textDecoration: 'none' }}>
-                  {contactInfo.phone}
-                </a>
-              </p>
-            </div>
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          style={{
-            background: 'rgba(255, 255, 255, 0.9)',
-            borderRadius: '20px',
-            padding: '25px',
-            boxShadow: '0 5px 20px rgba(0,0,0,0.1)',
-            border: '1px solid rgba(255,255,255,0.3)'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <div style={{
-              width: '50px',
-              height: '50px',
-              borderRadius: '12px',
-              background: 'linear-gradient(135deg, #667eea, #764ba2)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white'
-            }}>
-              <Mail size={24} />
-            </div>
-            <div>
-              <h3 style={{ margin: 0, fontSize: '18px', color: '#333' }}>Email</h3>
-              <p style={{ margin: '5px 0 0 0', fontSize: '14px', color: '#666' }}>
-                <a href={`mailto:${contactInfo.email}`} style={{ color: '#667eea', textDecoration: 'none' }}>
-                  {contactInfo.email}
-                </a>
-              </p>
-            </div>
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          style={{
-            background: 'rgba(255, 255, 255, 0.9)',
-            borderRadius: '20px',
-            padding: '25px',
-            boxShadow: '0 5px 20px rgba(0,0,0,0.1)',
-            border: '1px solid rgba(255,255,255,0.3)'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <div style={{
-              width: '50px',
-              height: '50px',
-              borderRadius: '12px',
-              background: 'linear-gradient(135deg, #FFEAA7, #FDCB6E)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white'
-            }}>
-              <Clock size={24} />
-            </div>
-            <div>
-              <h3 style={{ margin: 0, fontSize: '18px', color: '#333' }}>Opening Hours</h3>
-              <p style={{ margin: '5px 0 0 0', fontSize: '14px', color: '#666' }}>
-                {contactInfo.hours}
-              </p>
-            </div>
-          </div>
-        </motion.div>
-      </div>
-
-      {/* Reviews Section */}
+    <div className="rashti-page" style={{ overflowY: 'auto' }}>
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        style={{ marginBottom: '40px' }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        style={{ padding: '20px 0', paddingBottom: '40px' }}
       >
-        <h3 style={{
-          fontSize: '24px',
-          fontWeight: 'bold',
-          color: '#333',
-          textAlign: 'center',
-          marginBottom: '25px'
-        }}>
-          Customer Reviews ⭐
-        </h3>
+        <motion.h2
+          initial={{ y: -20 }}
+          animate={{ y: 0 }}
+          className="rashti-title"
+          style={{
+            fontSize: '28px',
+            textAlign: 'center',
+            marginBottom: '30px',
+            color: '#0d3d2e'
+          }}
+        >
+          Contatti
+        </motion.h2>
 
-        {loading ? (
-          <div style={{ textAlign: 'center', color: '#666', padding: '20px' }}>
-            Loading reviews...
-          </div>
-        ) : reviews.length > 0 ? (
-          <div style={{ display: 'grid', gap: '15px' }}>
-            {reviews.map((review, index) => (
-              <motion.div
-                key={review.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-                style={{
-                  background: 'rgba(255, 255, 255, 0.9)',
-                  borderRadius: '15px',
-                  padding: '20px',
-                  boxShadow: '0 3px 10px rgba(0,0,0,0.1)'
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '10px' }}>
-                  <div>
-                    <h4 style={{ margin: '0 0 5px 0', fontSize: '16px', color: '#333' }}>
-                      {review.customer_name}
-                    </h4>
-                    <div style={{ display: 'flex', gap: '2px' }}>
-                      {renderStars(review.rating || 0)}
-                    </div>
-                  </div>
-                  <span style={{ fontSize: '12px', color: '#999' }}>
-                    {formatDate(review.created_at)}
-                  </span>
-                </div>
-                <p style={{ margin: 0, fontSize: '14px', color: '#666', lineHeight: '1.5' }}>
-                  {review.comment_text}
+        {/* Contact Information Cards */}
+        <div style={{ display: 'grid', gap: '20px', marginBottom: '40px', padding: '0 20px' }}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="rashti-card-light"
+            style={{ borderRadius: '20px', padding: '20px' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <div style={{
+                width: '50px', height: '50px', borderRadius: '12px',
+                background: '#fffef0', border: '1px solid #c9a45c',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#c9a45c'
+              }}>
+                <MapPin size={24} />
+              </div>
+              <div>
+                <h3 className="font-cinzel" style={{ margin: 0, fontSize: '18px', color: '#0d3d2e' }}>Indirizzo</h3>
+                <p className="font-garamond" style={{ margin: '5px 0 0 0', fontSize: '16px', color: '#666', fontWeight: 600 }}>
+                  {contactInfo.address}
                 </p>
-              </motion.div>
-            ))}
-          </div>
-        ) : (
-          <div style={{ textAlign: 'center', color: '#666', padding: '20px' }}>
-            No reviews yet. Be the first to leave a review!
-          </div>
-        )}
-      </motion.div>
+              </div>
+            </div>
+          </motion.div>
 
-      {/* Leave a Review Form */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6 }}
-        style={{
-          background: 'rgba(255, 255, 255, 0.9)',
-          borderRadius: '20px',
-          padding: '25px',
-          boxShadow: '0 5px 20px rgba(0,0,0,0.1)',
-          border: '1px solid rgba(255,255,255,0.3)'
-        }}
-      >
-        <h3 style={{
-          fontSize: '20px',
-          fontWeight: 'bold',
-          color: '#333',
-          marginBottom: '20px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px'
-        }}>
-          <MessageSquare size={24} />
-          Leave a Review
-        </h3>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="rashti-card-light"
+            style={{ borderRadius: '20px', padding: '20px' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <div style={{
+                width: '50px', height: '50px', borderRadius: '12px',
+                background: '#fffef0', border: '1px solid #c9a45c',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#c9a45c'
+              }}>
+                <Phone size={24} />
+              </div>
+              <div>
+                <h3 className="font-cinzel" style={{ margin: 0, fontSize: '18px', color: '#0d3d2e' }}>Telefono</h3>
+                <p className="font-garamond" style={{ margin: '5px 0 0 0', fontSize: '16px', color: '#666', fontWeight: 600 }}>
+                  <a href={`tel:${contactInfo.phone}`} style={{ color: '#0d3d2e', textDecoration: 'none' }}>{contactInfo.phone}</a>
+                </p>
+              </div>
+            </div>
+          </motion.div>
 
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', color: '#666', fontSize: '14px' }}>
-            Your Name
-          </label>
-          <input
-            type="text"
-            value={newReview.name}
-            onChange={(e) => setNewReview(prev => ({ ...prev, name: e.target.value }))}
-            placeholder="Enter your name"
-            style={{
-              width: '100%',
-              padding: '12px',
-              borderRadius: '8px',
-              border: '1px solid #ddd',
-              fontSize: '16px'
-            }}
-          />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="rashti-card-light"
+            style={{ borderRadius: '20px', padding: '20px' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <div style={{
+                width: '50px', height: '50px', borderRadius: '12px',
+                background: '#fffef0', border: '1px solid #c9a45c',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#c9a45c'
+              }}>
+                <Mail size={24} />
+              </div>
+              <div>
+                <h3 className="font-cinzel" style={{ margin: 0, fontSize: '18px', color: '#0d3d2e' }}>Email</h3>
+                <p className="font-garamond" style={{ margin: '5px 0 0 0', fontSize: '16px', color: '#666', fontWeight: 600 }}>
+                  <a href={`mailto:${contactInfo.email}`} style={{ color: '#0d3d2e', textDecoration: 'none' }}>{contactInfo.email}</a>
+                </p>
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="rashti-card-light"
+            style={{ borderRadius: '20px', padding: '20px' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <div style={{
+                width: '50px', height: '50px', borderRadius: '12px',
+                background: '#fffef0', border: '1px solid #c9a45c',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#c9a45c'
+              }}>
+                <Clock size={24} />
+              </div>
+              <div>
+                <h3 className="font-cinzel" style={{ margin: 0, fontSize: '18px', color: '#0d3d2e' }}>Orari</h3>
+                <p className="font-garamond" style={{ margin: '5px 0 0 0', fontSize: '16px', color: '#666', fontWeight: 600 }}>
+                  {contactInfo.hours}
+                </p>
+              </div>
+            </div>
+          </motion.div>
         </div>
 
-        <div style={{ marginBottom: '15px' }}>
-          <label style={{ display: 'block', marginBottom: '8px', color: '#666', fontSize: '14px' }}>
-            Rating
-          </label>
-          <div style={{ display: 'flex', gap: '5px' }}>
-            {[1, 2, 3, 4, 5].map((star) => (
-              <Star
-                key={star}
-                size={24}
-                fill={star <= newReview.rating ? '#FFD700' : 'none'}
-                color={star <= newReview.rating ? '#FFD700' : '#ddd'}
-                style={{ cursor: 'pointer' }}
-                onClick={() => setNewReview(prev => ({ ...prev, rating: star }))}
-              />
-            ))}
-          </div>
-        </div>
-
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', color: '#666', fontSize: '14px' }}>
-            Your Review
-          </label>
-          <textarea
-            value={newReview.comment}
-            onChange={(e) => setNewReview(prev => ({ ...prev, comment: e.target.value }))}
-            placeholder="Tell us about your experience..."
-            rows={4}
-            style={{
-              width: '100%',
-              padding: '12px',
-              borderRadius: '8px',
-              border: '1px solid #ddd',
-              fontSize: '16px',
-              resize: 'vertical'
-            }}
-          />
-        </div>
-
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={submitReview}
-          disabled={submitting}
-          style={{
-            width: '100%',
-            padding: '15px',
-            borderRadius: '12px',
-            border: 'none',
-            background: submitting
-              ? '#ccc'
-              : 'linear-gradient(135deg, #667eea, #764ba2)',
-            color: 'white',
-            fontSize: '16px',
-            fontWeight: 'bold',
-            cursor: submitting ? 'not-allowed' : 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px'
-          }}
+        {/* Reviews Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          style={{ marginBottom: '40px', padding: '0 20px' }}
         >
-          {submitting ? (
-            <>
-              <Clock size={18} />
-              Submitting...
-            </>
+          <h3 className="rashti-title" style={{ fontSize: '24px', textAlign: 'center', marginBottom: '25px', color: '#0d3d2e' }}>
+            Recensioni ⭐
+          </h3>
+
+          {loading ? (
+            <div style={{ textAlign: 'center', color: '#666', padding: '20px', fontFamily: 'Cormorant Garamond' }}>
+              Caricamento recensioni...
+            </div>
+          ) : reviews.length > 0 ? (
+            <div style={{ display: 'grid', gap: '15px' }}>
+              {reviews.map((review, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="rashti-card-light"
+                  style={{ borderRadius: '15px', padding: '20px' }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '10px' }}>
+                    <div>
+                      <h4 className="font-cinzel" style={{ margin: '0 0 5px 0', fontSize: '16px', color: '#0d3d2e', fontWeight: 700 }}>
+                        {review.customer_name}
+                      </h4>
+                      <div style={{ display: 'flex', gap: '2px' }}>
+                        {renderStars(review.rating || 0)}
+                      </div>
+                    </div>
+                    <span style={{ fontSize: '12px', color: '#999' }}>
+                      {formatDate(review.created_at)}
+                    </span>
+                  </div>
+                  <p className="font-garamond" style={{ margin: 0, fontSize: '16px', color: '#666', lineHeight: '1.5' }}>
+                    {review.comment_text}
+                  </p>
+                </motion.div>
+              ))}
+            </div>
           ) : (
-            <>
-              <Send size={18} />
-              Submit Review
-            </>
+            <div style={{ textAlign: 'center', color: '#666', padding: '20px', fontFamily: 'Cormorant Garamond' }}>
+              Nessuna recensione. Scrivine una tu!
+            </div>
           )}
-        </motion.button>
+        </motion.div>
+
+        {/* Leave a Review Form */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="rashti-card-light"
+          style={{ margin: '0 20px 20px 20px', padding: '25px', borderRadius: '20px' }}
+        >
+          <h3 className="font-cinzel" style={{ fontSize: '20px', color: '#0d3d2e', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <MessageSquare size={24} color="#c9a45c" />
+            Lascia una Recensione
+          </h3>
+
+          <div style={{ marginBottom: '15px' }}>
+            <input
+              type="text"
+              value={newReview.name}
+              onChange={(e) => setNewReview(prev => ({ ...prev, name: e.target.value }))}
+              placeholder="Il tuo nome"
+              className="rashti-input"
+              style={{ background: 'white', borderColor: '#e2e8f0', color: '#333' }}
+            />
+          </div>
+
+          <div style={{ marginBottom: '15px' }}>
+            <label className="font-garamond" style={{ display: 'block', marginBottom: '8px', color: '#666', fontSize: '16px' }}>Voto</label>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Star
+                  key={star}
+                  size={28}
+                  fill={star <= newReview.rating ? '#c9a45c' : 'none'}
+                  color={star <= newReview.rating ? '#c9a45c' : '#ddd'}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => setNewReview(prev => ({ ...prev, rating: star }))}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div style={{ marginBottom: '20px' }}>
+            <textarea
+              value={newReview.comment}
+              onChange={(e) => setNewReview(prev => ({ ...prev, comment: e.target.value }))}
+              placeholder="Raccontaci la tua esperienza..."
+              rows={4}
+              className="rashti-input"
+              style={{ background: 'white', borderColor: '#e2e8f0', color: '#333', resize: 'vertical' }}
+            />
+          </div>
+
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={submitReview}
+            disabled={submitting}
+            className="rashti-btn-primary"
+            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+          >
+            {submitting ? (
+              <>
+                <Clock size={18} />
+                Invio in corso...
+              </>
+            ) : (
+              <>
+                <Send size={18} />
+                Invia Recensione
+              </>
+            )}
+          </motion.button>
+        </motion.div>
       </motion.div>
-    </motion.div>
+    </div>
   );
 };
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, ShoppingCart, Star, Flame, Info, Search } from 'lucide-react';
+import { Plus, ShoppingCart, Star, Search } from 'lucide-react';
 import { getProducts, getCategories, Product, Category } from '../lib/database';
 import JerseyImage from '../components/JerseyImage';
 
@@ -13,7 +13,7 @@ let cachedProducts: Product[] | null = null;
 let cachedCategories: Category[] | null = null;
 let cacheTimestamp = 0;
 const CACHE_DURATION = 0; // Disabled cache to force fresh data
-const CACHE_VERSION = 3; // Increment to force cache bust
+// const CACHE_VERSION = 3; 
 
 // Helper to get Pizza Image based on keywords
 const getPizzaImage = (product: Product): string => {
@@ -199,58 +199,28 @@ const MenuPage: React.FC<MenuPageProps> = ({ onNavigate }) => {
     <>
       {[1, 2, 3].map((i) => (
         <div key={i} style={{ height: '55vh', padding: '20px', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
-          <div style={{ background: '#1e293b', borderRadius: '40px', width: '100%', height: '300px', animation: 'pulse 1.5s infinite' }} />
+          <div className="rashti-card" style={{ width: '100%', height: '300px', opacity: 0.5 }} />
         </div>
       ))}
-      <style>{`@keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 0.3; } 100% { opacity: 0.6; } }`}</style>
     </>
   );
 
   return (
-    <div style={{
-      height: '100%',
-      width: '100%',
-      background: '#0f172a',
-      position: 'relative',
-      fontFamily: '"Inter", sans-serif',
-      display: 'flex',
-      flexDirection: 'column',
-      overflow: 'hidden'
-    }}>
+    <div className="rashti-page-dark">
 
       {/* 1. Sticky Header with Search + Categories */}
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 60,
-        padding: '15px 20px 15px 80px',
-        background: 'linear-gradient(to bottom, rgba(15, 23, 42, 0.95) 60%, rgba(15, 23, 42, 0))',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '12px'
-      }}>
+      <div className="rashti-header-container" style={{ position: 'absolute', top: 0, left: 0, right: 0 }}>
 
         {/* Search Bar */}
         <div style={{ position: 'relative', width: '100%', maxWidth: '300px' }}>
-          <Search size={18} color="#94a3b8" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
+          <Search size={18} className="text-gold" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
           <input
             type="text"
             placeholder="Search pizza..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            style={{
-              width: '100%',
-              background: 'rgba(255,255,255,0.1)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: '20px',
-              padding: '8px 12px 8px 38px',
-              color: 'white',
-              fontSize: '14px',
-              outline: 'none',
-              backdropFilter: 'blur(5px)'
-            }}
+            className="rashti-input"
+            style={{ paddingLeft: '38px' }}
           />
         </div>
 
@@ -258,45 +228,19 @@ const MenuPage: React.FC<MenuPageProps> = ({ onNavigate }) => {
         <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', padding: '0 0 5px 0', scrollbarWidth: 'none' }}>
           <button
             onClick={() => setActiveCategory('all')}
-            style={{
-              padding: '6px 14px',
-              borderRadius: '20px',
-              background: activeCategory === 'all' ? '#ea580c' : 'rgba(255,255,255,0.1)',
-              backdropFilter: 'blur(10px)',
-              color: 'white',
-              border: 'none',
-              fontWeight: '600',
-              fontSize: '13px',
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
-              boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-              transition: 'background 0.2s ease'
-            }}
+            className={`rashti-chip ${activeCategory === 'all' ? 'active' : ''}`}
           >
             All
           </button>
 
           {loading ? (
-            [1, 2, 3].map(k => <div key={k} style={{ height: '28px', width: '70px', background: 'rgba(255,255,255,0.1)', borderRadius: '20px', flexShrink: 0 }} />)
+            [1, 2, 3].map(k => <div key={k} className="rashti-chip" style={{ width: '70px', height: '28px', opacity: 0.5 }} />)
           ) : (
             categories.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
-                style={{
-                  padding: '6px 14px',
-                  borderRadius: '20px',
-                  background: activeCategory === cat.id ? '#ea580c' : 'rgba(255,255,255,0.1)',
-                  backdropFilter: 'blur(10px)',
-                  color: 'white',
-                  border: 'none',
-                  fontWeight: '600',
-                  fontSize: '13px',
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                  boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-                  transition: 'background 0.2s ease'
-                }}
+                className={`rashti-chip ${activeCategory === cat.id ? 'active' : ''}`}
               >
                 {cat.name}
               </button>
@@ -314,7 +258,8 @@ const MenuPage: React.FC<MenuPageProps> = ({ onNavigate }) => {
         bottom: 0,
         zIndex: 0,
         pointerEvents: 'none',
-        background: '#1e293b'
+        // Slight gradient to make text legible if pizza is light
+        background: 'radial-gradient(circle at center, transparent 0%, rgba(13, 61, 46, 0.4) 100%)'
       }}>
         <AnimatePresence mode="wait">
           {activeProduct && (
@@ -323,24 +268,24 @@ const MenuPage: React.FC<MenuPageProps> = ({ onNavigate }) => {
               initial={{ opacity: 0, scale: 0.9, rotate: -5 }}
               animate={{ opacity: 1, scale: 1, rotate: 0 }}
               exit={{ opacity: 0, scale: 1.1 }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.6, type: "spring" }}
               style={{
                 position: 'absolute',
                 top: 0, left: 0, right: 0, bottom: '40vh', // Takes up top 60%
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                paddingTop: '80px',
+                paddingTop: '60px',
               }}
             >
               <img
                 src={getPizzaImage(activeProduct)}
                 alt={activeProduct.name}
                 style={{
-                  width: '100%',
-                  height: '100%',
+                  width: '90%',
+                  height: '90%',
                   objectFit: 'contain',
-                  filter: 'drop-shadow(0px 20px 40px rgba(0,0,0,0.6))'
+                  filter: 'drop-shadow(0px 20px 50px rgba(0,0,0,0.6))'
                 }}
               />
             </motion.div>
@@ -351,7 +296,7 @@ const MenuPage: React.FC<MenuPageProps> = ({ onNavigate }) => {
         <div style={{
           position: 'absolute',
           top: '30vh', left: 0, right: 0, bottom: 0,
-          background: 'linear-gradient(180deg, rgba(15,23,42,0) 0%, rgba(15,23,42,1) 60%)'
+          background: 'linear-gradient(180deg, rgba(8, 41, 32, 0) 0%, rgba(8, 41, 32, 1) 60%)'
         }} />
       </div>
 
@@ -361,14 +306,15 @@ const MenuPage: React.FC<MenuPageProps> = ({ onNavigate }) => {
         overflowY: 'auto',
         scrollSnapType: 'y mandatory',
         height: '100%',
-        marginTop: '55vh', // Push list down to reveal food
+        marginTop: '50vh', // Push list down to reveal food
         position: 'relative',
         zIndex: 10,
-        background: '#0f172a',
+        background: 'linear-gradient(180deg, rgba(8, 41, 32, 0.95) 0%, #051a14 100%)',
         borderTopLeftRadius: '30px',
         borderTopRightRadius: '30px',
         boxShadow: '0 -10px 40px rgba(0,0,0,0.5)',
-        paddingTop: '20px'
+        paddingTop: '20px',
+        backdropFilter: 'blur(10px)'
       }}>
         {loading ? <MenuSkeleton /> : filteredProducts.map((product) => (
           <div
@@ -389,79 +335,68 @@ const MenuPage: React.FC<MenuPageProps> = ({ onNavigate }) => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ amount: 0.2, once: true }}
               transition={{ type: 'tween', duration: 0.25, ease: 'easeOut' }}
+              className="rashti-card"
               style={{
-                background: '#1e293b',
-                borderRadius: '30px',
-                padding: '20px',
                 width: '100%',
                 maxWidth: '600px',
                 height: '100%',
-                boxShadow: '0 10px 20px rgba(0,0,0,0.2)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '8px',
-                position: 'relative'
+                justifyContent: 'space-between',
+                padding: '20px'
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{
-                  background: '#334155', color: '#94a3b8', padding: '4px 10px', borderRadius: '12px',
-                  fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px'
-                }}>
+                <span className="rashti-chip active" style={{ fontSize: '10px', padding: '4px 10px', background: 'var(--persian-gold)', color: 'var(--persian-emerald-dark)' }}>
                   {categories.find(c => c.id === product.category_id)?.name || 'Item'}
                 </span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <Star size={14} fill="#fbbf24" color="#fbbf24" />
-                  <span style={{ color: 'white', fontWeight: 'bold', fontSize: '13px' }}>4.8</span>
+                  <Star size={14} fill="#c9a45c" color="#c9a45c" />
+                  <span className="text-gold" style={{ fontWeight: 'bold', fontSize: '13px' }}>4.8</span>
                 </div>
               </div>
 
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '8px' }}>
                 {/* Title Line WITH MINI JERSEY */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   {/* Tiny Jersey Icon */}
-                  <div style={{ width: '45px', height: '55px', flexShrink: 0 }}>
+                  <div style={{ width: '40px', height: '50px', flexShrink: 0 }}>
                     <JerseyImage
                       src={(product.image_url && product.image_url.startsWith('jersey')) ? product.image_url : ''}
                       text={product.name}
                       alt="Team Jersey"
-                      forceGenerator={true} // Force it to generate a jersey even if image is pizza or missing
+                      forceGenerator={true}
                     />
                   </div>
 
-                  <h2 style={{ color: 'white', fontSize: '20px', fontWeight: '800', lineHeight: '1.2', textTransform: 'uppercase' }}>
+                  <h2 className="rashti-title" style={{ fontSize: '18px', lineHeight: '1.2', borderBottom: 'none' }}>
                     {product.name}
                   </h2>
                 </div>
 
                 <p style={{
-                  color: '#cbd5e1',
-                  fontSize: '13px',
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  fontSize: '14px',
                   lineHeight: '1.5',
+                  fontFamily: 'Cormorant Garamond',
                   overflow: 'hidden',
                   display: '-webkit-box',
                   WebkitLineClamp: 3,
                   WebkitBoxOrient: 'vertical'
                 }}>
-                  {product.description || "Delicious, fresh ingredients."}
+                  {product.description || "Delicious, fresh ingredients prepared in the traditional Rashti style."}
                 </p>
               </div>
 
               <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span style={{ color: '#94a3b8', fontSize: '11px', textTransform: 'uppercase', fontWeight: 'bold' }}>Price</span>
-                  <span style={{ color: '#fb923c', fontSize: '26px', fontWeight: '800' }}>
+                  <span className="text-gold" style={{ fontSize: '11px', textTransform: 'uppercase', fontWeight: 'bold', opacity: 0.8 }}>Price</span>
+                  <span className="text-gold" style={{ fontSize: '24px', fontWeight: '800', fontFamily: 'Cinzel' }}>
                     €{(typeof product.price === 'string' ? parseFloat(product.price) : (product.price || 0)).toFixed(2)}
                   </span>
                 </div>
 
                 <button
                   onClick={() => addToCart(product)}
-                  style={{
-                    background: '#ea580c', color: 'white', border: 'none', borderRadius: '20px',
-                    padding: '0 20px', height: '48px', display: 'flex', alignItems: 'center', gap: '8px',
-                    cursor: 'pointer', boxShadow: '0 5px 15px rgba(234, 88, 12, 0.4)'
-                  }}
+                  className="rashti-btn-primary"
                 >
                   <Plus size={20} />
                   <span style={{ fontWeight: 'bold', fontSize: '14px' }}>ADD</span>
@@ -479,22 +414,19 @@ const MenuPage: React.FC<MenuPageProps> = ({ onNavigate }) => {
       {getTotalItems() > 0 && (
         <button
           onClick={() => onNavigate?.('cart')}
+          className="rashti-btn-icon"
           style={{
-            position: 'fixed', bottom: '20px', left: '20px', background: '#ea580c',
-            color: 'white', border: 'none', borderRadius: '50%', width: '60px', height: '60px',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 25px rgba(234, 88, 12, 0.5)',
-            zIndex: 100, cursor: 'pointer', transition: 'transform 0.15s ease'
+            position: 'fixed', bottom: '20px', left: '20px',
+            width: '60px', height: '60px',
+            zIndex: 100
           }}
-          onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.9)')}
-          onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1.1)')}
-          onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
         >
           <div style={{ position: 'relative' }}>
-            <ShoppingCart size={24} />
+            <ShoppingCart size={24} color="#082920" />
             <span style={{
-              position: 'absolute', top: '-8px', right: '-8px', background: 'white', color: '#ea580c',
-              fontSize: '12px', fontWeight: 'bold', width: '18px', height: '18px', borderRadius: '50%',
-              display: 'flex', alignItems: 'center', justifyContent: 'center'
+              position: 'absolute', top: '-8px', right: '-8px', background: '#082920', color: '#c9a45c',
+              fontSize: '12px', fontWeight: 'bold', width: '20px', height: '20px', borderRadius: '50%',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #c9a45c'
             }}>
               {getTotalItems()}
             </span>

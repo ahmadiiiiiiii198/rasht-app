@@ -55,18 +55,16 @@ body {
   height: 100%;
   z-index: 0;
   /* Matching the logo's deep emerald green #0d3d2e */
-  background: radial-gradient(circle at center, #0d3d2e 0%, #082920 60%, #051a14 100%);
+  background: url('./rashti-background-v4.png') no-repeat center center;
+  background-size: cover;
 }
 
-/* Golden texture overlay */
+/* Golden texture overlay - Disabled for image background */
 .background-static::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c9a45c' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  content: none;
+  display: none;
+  /* Original overlay preserved in history if needed */
+  /* background-image: url("data:image/svg+xml,..."); */
   pointer-events: none;
 }
 
@@ -201,11 +199,12 @@ body {
 .button-label {
   font-family: 'Cinzel', serif !important;
   font-size: 9px !important;
-  font-weight: 600 !important;
+  font-weight: 700 !important;
   text-transform: uppercase !important;
   letter-spacing: 1px !important;
   color: var(--persian-gold) !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9) !important;
+  z-index: 10;
 }
 
 /* ============================================
@@ -330,4 +329,204 @@ body {
   .checkout-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* ============================================
+   RASHTI THEME UTILITIES
+   ============================================ */
+
+/* Page Containers */
+.rashti-page {
+  width: 100%;
+  height: 100%;
+  /* Light/Cream Mode Background */
+  background: linear-gradient(180deg, var(--persian-cream) 0%, var(--persian-ivory) 100%);
+  position: relative;
+  font-family: 'Cormorant Garamond', serif;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.rashti-page-dark {
+  width: 100%;
+  height: 100%;
+  /* Dark Emerald Background */
+  background: radial-gradient(circle at top center, #145a44 0%, #0d3d2e 40%, #051a14 100%);
+  position: relative;
+  font-family: 'Cormorant Garamond', serif;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: var(--persian-gold);
+}
+
+.rashti-page-dark::before {
+  /* Geometric Pattern Overlay */
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c9a45c' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+/* Headers */
+.rashti-header-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  /* Glassmorph header */
+  background: rgba(13, 61, 46, 0.85);
+  backdrop-filter: blur(10px);
+  z-index: 50;
+  border-bottom: 1px solid rgba(201, 164, 92, 0.3);
+}
+
+.rashti-title {
+  color: var(--persian-gold);
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Components: Cards */
+.rashti-card {
+  background: rgba(13, 61, 46, 0.9);
+  /* Emerald Card */
+  border: 1px solid rgba(201, 164, 92, 0.3);
+  /* Gold Border */
+  border-radius: 20px;
+  padding: 16px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(5px);
+}
+
+.rashti-card-light {
+  background: #fffef5;
+  border: 1px solid transparent;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+/* Components: Inputs */
+.rashti-input {
+  width: 100%;
+  background: rgba(13, 61, 46, 0.4);
+  border: 1px solid rgba(201, 164, 92, 0.5);
+  border-radius: 20px;
+  padding: 10px 16px;
+  color: var(--persian-gold);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 16px;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.rashti-input::placeholder {
+  color: rgba(201, 164, 92, 0.6);
+}
+
+.rashti-input:focus {
+  background: rgba(13, 61, 46, 0.9);
+  border-color: var(--persian-gold);
+  box-shadow: 0 0 15px rgba(201, 164, 92, 0.2);
+}
+
+/* Components: Chips */
+.rashti-chip {
+  padding: 8px 18px;
+  border-radius: 20px;
+  background: rgba(13, 61, 46, 0.4);
+  border: 1px solid rgba(201, 164, 92, 0.3);
+  color: var(--persian-gold-light);
+  font-family: 'Cinzel', serif;
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(4px);
+}
+
+.rashti-chip.active {
+  background: var(--persian-gold);
+  color: var(--persian-emerald-dark);
+  font-weight: 800;
+  box-shadow: 0 0 15px rgba(201, 164, 92, 0.4);
+  border-color: var(--persian-gold);
+}
+
+/* Components: Buttons */
+.rashti-btn-primary {
+  background: linear-gradient(135deg, var(--persian-gold) 0%, #b89146 100%);
+  color: var(--persian-emerald-dark);
+  border: none;
+  border-radius: 20px;
+  padding: 0 24px;
+  height: 48px;
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(201, 164, 92, 0.3);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+
+.rashti-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(201, 164, 92, 0.5);
+  filter: brightness(1.1);
+}
+
+.rashti-btn-primary:active {
+  transform: scale(0.96);
+}
+
+.rashti-btn-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--persian-gold) 0%, #b89146 100%);
+  color: var(--persian-emerald-dark);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  cursor: pointer;
+}
+
+.rashti-btn-icon:hover {
+  transform: scale(1.1) rotate(5deg);
+}
+
+/* Typography Helpers */
+.text-gold {
+  color: var(--persian-gold);
+}
+
+.text-cream {
+  color: var(--persian-cream);
+}
+
+.text-emerald-dark {
+  color: #082920;
+}
+
+.font-cinzel {
+  font-family: 'Cinzel', serif;
 }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, Gift, Zap, Award, Trophy, Target, Coffee, Utensils, QrCode, ShoppingCart, Store } from 'lucide-react';
+import { Star, Gift, Zap, Award, Trophy, Target, Coffee, Utensils, QrCode, ShoppingCart, Store, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useCart } from '../hooks/useCart';
 import { getUserOrders } from '../lib/database';
@@ -81,23 +81,17 @@ const LoyaltyPage: React.FC<LoyaltyPageProps> = ({ onNavigate }) => {
 
   const calculateLoyaltyPoints = async (email: string) => {
     try {
-      // Get user orders to calculate loyalty points
       const orders = await getUserOrders(email);
 
-      // Filter valid orders - only count confirmed/delivered orders
       const validOrders = orders.filter(o => {
         const status = (o.status || '').toLowerCase();
         const orderStatus = (o.order_status || '').toLowerCase();
-        // Allow confirmed, delivered, completed, or shipped
-        // 'confirmed' is used when order is placed successfully
         return ['confirmed', 'delivered', 'completed', 'shipped'].some(s =>
           status.includes(s) || orderStatus.includes(s)
         );
       });
 
-      // Calculate points (1 point per €1 spent)
       const totalSpent = validOrders.reduce((sum, order) => {
-        // Handle potential string values from DB for numeric fields
         const amount = typeof order.total_amount === 'string'
           ? parseFloat(order.total_amount)
           : order.total_amount;
@@ -106,7 +100,6 @@ const LoyaltyPage: React.FC<LoyaltyPageProps> = ({ onNavigate }) => {
 
       const currentPoints = Math.floor(totalSpent);
 
-      // Determine tier based on total points
       let tier: 'bronze' | 'silver' | 'gold' | 'platinum' = 'bronze';
       if (currentPoints >= 1000) tier = 'platinum';
       else if (currentPoints >= 500) tier = 'gold';
@@ -114,7 +107,7 @@ const LoyaltyPage: React.FC<LoyaltyPageProps> = ({ onNavigate }) => {
 
       setUserLoyalty({
         current_points: currentPoints,
-        total_earned: currentPoints, // In real app, this would track all-time earned points
+        total_earned: currentPoints,
         tier: tier,
         orders_count: validOrders.length
       });
@@ -126,7 +119,6 @@ const LoyaltyPage: React.FC<LoyaltyPageProps> = ({ onNavigate }) => {
 
   const loadRewards = async () => {
     try {
-      // Load rewards from new 'loyalty_rewards' table
       const { data, error } = await supabase
         .from('loyalty_rewards')
         .select('*')
@@ -137,7 +129,6 @@ const LoyaltyPage: React.FC<LoyaltyPageProps> = ({ onNavigate }) => {
       setRewards(data || []);
     } catch (error) {
       console.error('Error loading rewards:', error);
-      // Fallback empty or previously hardcoded logic removed as requested "totally from admin app"
       setRewards([]);
     }
   };
@@ -145,19 +136,11 @@ const LoyaltyPage: React.FC<LoyaltyPageProps> = ({ onNavigate }) => {
   const loadLoyaltyData = async () => {
     setLoading(true);
     try {
-      // Get user email
       const email = localStorage.getItem('customer_email');
-
-      // Also try to get user_id from profile if we have email
       if (email) {
         await checkUserAuth(email);
         await calculateLoyaltyPoints(email);
       }
-
-      // If no email, we don't prompt - we wait for user to try to redeem
-      // or we could show a "Log in to see points" state. 
-      // For now, keeping existing flow but removing prompt.
-
       await loadRewards();
     } catch (error) {
       console.error('Error loading loyalty data:', error);
@@ -168,7 +151,6 @@ const LoyaltyPage: React.FC<LoyaltyPageProps> = ({ onNavigate }) => {
 
   useEffect(() => {
     loadLoyaltyData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const generateQRData = (reward: LoyaltyReward) => {
@@ -184,13 +166,10 @@ const LoyaltyPage: React.FC<LoyaltyPageProps> = ({ onNavigate }) => {
 
   const handleAuthSuccess = async (newUserId: string) => {
     setUserId(newUserId);
-    // Refresh points for this user
     const email = localStorage.getItem('customer_email');
     if (email) {
       await calculateLoyaltyPoints(email);
     }
-
-    // If we were trying to redeem, show choice now
     if (selectedReward) {
       setShowRedemptionChoice(true);
     }
@@ -213,10 +192,10 @@ const LoyaltyPage: React.FC<LoyaltyPageProps> = ({ onNavigate }) => {
         name: selectedReward.name,
         price: 0,
         quantity: 1,
-        image_url: undefined, // Reward icons are emojis, not URLs
+        image_url: undefined,
         isLoyaltyReward: true,
         pointsCost: selectedReward.points_required,
-        deliveryOnly: true // Loyalty rewards can only be delivered, not picked up
+        deliveryOnly: true
       });
       setShowRedemptionChoice(false);
       alert(`${selectedReward.name} aggiunto al carrello! (Solo consegna a domicilio)`);
@@ -226,13 +205,13 @@ const LoyaltyPage: React.FC<LoyaltyPageProps> = ({ onNavigate }) => {
   const getTierInfo = (tier: string) => {
     switch (tier) {
       case 'platinum':
-        return { color: '#E5E7EB', icon: <Trophy size={24} />, name: 'Platino', nextTier: null, pointsToNext: 0 };
+        return { color: '#E5E7EB', textColor: '#333', icon: <Trophy size={24} />, name: 'Platino', nextTier: null, pointsToNext: 0 };
       case 'gold':
-        return { color: '#F59E0B', icon: <Award size={24} />, name: 'Oro', nextTier: 'Platino', pointsToNext: 1000 - userLoyalty.current_points };
+        return { color: '#c9a45c', textColor: '#0d3d2e', icon: <Award size={24} />, name: 'Oro', nextTier: 'Platino', pointsToNext: 1000 - userLoyalty.current_points };
       case 'silver':
-        return { color: '#6B7280', icon: <Star size={24} />, name: 'Argento', nextTier: 'Oro', pointsToNext: 500 - userLoyalty.current_points };
+        return { color: '#C0C0C0', textColor: '#333', icon: <Star size={24} />, name: 'Argento', nextTier: 'Oro', pointsToNext: 500 - userLoyalty.current_points };
       default:
-        return { color: '#CD7F32', icon: <Target size={24} />, name: 'Bronzo', nextTier: 'Argento', pointsToNext: 200 - userLoyalty.current_points };
+        return { color: '#CD7F32', textColor: '#fff', icon: <Target size={24} />, name: 'Bronzo', nextTier: 'Argento', pointsToNext: 200 - userLoyalty.current_points };
     }
   };
 
@@ -252,472 +231,281 @@ const LoyaltyPage: React.FC<LoyaltyPageProps> = ({ onNavigate }) => {
 
   if (loading) {
     return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        style={{
-          padding: '40px 20px',
-          minHeight: '60vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '18px',
-          color: '#666'
-        }}
-      >
-        Caricamento programma fedeltà...
-      </motion.div>
+      <div className="rashti-page" style={{ alignItems: 'center', justifyContent: 'center' }}>
+        <div className="text-gold font-cinzel">Caricamento programma fedeltà...</div>
+      </div>
     );
   }
 
   const tierInfo = getTierInfo(userLoyalty.tier);
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      style={{ padding: '20px 0' }}
-    >
-      <motion.h2
-        initial={{ y: -20 }}
-        animate={{ y: 0 }}
-        style={{
-          fontSize: '28px',
-          fontWeight: 'bold',
-          color: '#333',
-          textAlign: 'center',
-          marginBottom: '30px'
-        }}
-      >
-        Programma Fedeltà ⭐
-      </motion.h2>
-
-      {/* User Status Card */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.2 }}
-        style={{
-          background: `linear-gradient(135deg, ${tierInfo.color}20, ${tierInfo.color}10)`,
-          borderRadius: '25px',
-          padding: '30px',
-          marginBottom: '30px',
-          border: `2px solid ${tierInfo.color}40`
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
-          <div style={{ color: tierInfo.color, marginRight: '10px' }}>
-            {tierInfo.icon}
-          </div>
-          <div style={{ textAlign: 'center' }}>
-            <h3 style={{ margin: 0, fontSize: '24px', color: '#333' }}>
-              Membro {tierInfo.name}
-            </h3>
-            <div style={{ fontSize: '32px', fontWeight: 'bold', color: tierInfo.color, margin: '10px 0' }}>
-              {userLoyalty.current_points} Punti
-            </div>
-          </div>
-        </div>
-
-        {tierInfo.nextTier && (
-          <div style={{ marginBottom: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <span style={{ fontSize: '14px', color: '#666' }}>Progressi per {tierInfo.nextTier}</span>
-              <span style={{ fontSize: '14px', color: '#666' }}>
-                {tierInfo.pointsToNext} punti mancanti
-              </span>
-            </div>
-            <div style={{
-              width: '100%',
-              height: '8px',
-              background: 'rgba(0,0,0,0.1)',
-              borderRadius: '4px',
-              overflow: 'hidden'
-            }}>
-              <div style={{
-                width: `${getTierProgress()}%`,
-                height: '100%',
-                background: tierInfo.color,
-                borderRadius: '4px',
-                transition: 'width 0.3s ease'
-              }} />
-            </div>
-          </div>
-        )}
-
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '20px',
-          fontSize: '14px',
-          color: '#666'
-        }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#333' }}>
-              {userLoyalty.orders_count}
-            </div>
-            <div>Ordini Effettuati</div>
-          </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#333' }}>
-              {userLoyalty.total_earned}
-            </div>
-            <div>Totale Punti</div>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* 🍕 Free Pizza Progress Card (10 Orders = Free Pizza) */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.25 }}
-        style={{
-          background: userLoyalty.orders_count >= 10
-            ? 'linear-gradient(135deg, #22c55e20, #22c55e10)'
-            : 'linear-gradient(135deg, #ea580c20, #ea580c10)',
-          borderRadius: '20px',
-          padding: '24px',
-          marginBottom: '30px',
-          border: userLoyalty.orders_count >= 10
-            ? '2px solid #22c55e40'
-            : '2px solid #ea580c40'
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '16px' }}>
-          <div style={{ fontSize: '40px' }}>🍕</div>
-          <div>
-            <h3 style={{ margin: 0, fontSize: '18px', color: '#333' }}>
-              {userLoyalty.orders_count >= 10 ? '🎉 Pizza Gratis Disponibile!' : 'Pizza Gratis dopo 10 Ordini'}
-            </h3>
-            <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#666' }}>
-              {userLoyalty.orders_count >= 10
-                ? 'Complimenti! Hai guadagnato una pizza gratis!'
-                : `Ancora ${10 - userLoyalty.orders_count} ordini per sbloccare`}
-            </p>
-          </div>
-        </div>
-
-        {/* Progress Bar */}
-        <div style={{ marginBottom: '16px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-            <span style={{ fontSize: '13px', color: '#666' }}>Progresso</span>
-            <span style={{ fontSize: '13px', fontWeight: 'bold', color: userLoyalty.orders_count >= 10 ? '#22c55e' : '#ea580c' }}>
-              {Math.min(userLoyalty.orders_count, 10)}/10 ordini
-            </span>
-          </div>
-          <div style={{
-            width: '100%',
-            height: '12px',
-            background: 'rgba(0,0,0,0.1)',
-            borderRadius: '6px',
-            overflow: 'hidden'
-          }}>
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${Math.min((userLoyalty.orders_count / 10) * 100, 100)}%` }}
-              style={{
-                height: '100%',
-                background: userLoyalty.orders_count >= 10
-                  ? 'linear-gradient(90deg, #22c55e, #4ade80)'
-                  : 'linear-gradient(90deg, #ea580c, #fb923c)',
-                borderRadius: '6px'
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Claim Button */}
-        {userLoyalty.orders_count >= 10 && (
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => {
-              // Create a virtual "Free Pizza" reward for redemption
-              const freePizzaReward: LoyaltyReward = {
-                id: 'free-pizza-10-orders',
-                name: 'Pizza Gratis (10 Ordini)',
-                points_required: 0,
-                description: 'Premio fedeltà per 10 ordini completati!',
-                icon: '🍕',
-                is_active: true,
-                category: 'food'
-              };
-              setSelectedReward(freePizzaReward);
-              setShowRedemptionChoice(true);
-            }}
-            style={{
-              width: '100%',
-              padding: '14px',
-              borderRadius: '12px',
-              border: 'none',
-              background: 'linear-gradient(135deg, #22c55e, #16a34a)',
-              color: 'white',
-              fontSize: '16px',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              boxShadow: '0 4px 12px rgba(34, 197, 94, 0.4)'
-            }}
-          >
-            🎁 Riscatta Pizza Gratis
-          </motion.button>
-        )}
-      </motion.div>
-
-      {/* Category Filter */}
-      <motion.div
-        initial={{ y: -10, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.3 }}
-        style={{
-          display: 'flex',
-          gap: '10px',
-          overflowX: 'auto',
-          padding: '10px 0',
-          marginBottom: '30px'
-        }}
-      >
-        {[
-          { id: 'all', label: 'Tutti', icon: <Gift size={16} /> },
-          { id: 'food', label: 'Cibo', icon: <Utensils size={16} /> },
-          { id: 'discount', label: 'Sconti', icon: <Zap size={16} /> },
-          { id: 'service', label: 'Extra', icon: <Coffee size={16} /> }
-        ].map((category) => (
-          <motion.button
-            key={category.id}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setSelectedCategory(category.id as any)}
-            style={{
-              background: selectedCategory === category.id ? '#667eea' : 'rgba(255, 255, 255, 0.3)',
-              color: selectedCategory === category.id ? 'white' : '#333',
-              border: `2px solid ${selectedCategory === category.id ? '#667eea' : '#ddd'}`,
-              borderRadius: '20px',
-              padding: '8px 16px',
-              fontSize: '14px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              minWidth: 'fit-content',
-              whiteSpace: 'nowrap',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              transition: 'all 0.3s ease'
-            }}
-          >
-            {category.icon}
-            {category.label}
-          </motion.button>
-        ))}
-      </motion.div>
-
-      {/* Available Rewards */}
+    <div className="rashti-page" style={{ overflowY: 'auto' }}>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.4 }}
-        style={{ marginBottom: '30px' }}
+        style={{ padding: '20px 0', paddingBottom: '40px' }}
       >
-        <h3 style={{
-          fontSize: '20px',
-          color: '#333',
-          marginBottom: '20px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px'
-        }}>
-          <Star size={24} color="#2ed573" />
-          Premi Disponibili
-        </h3>
+        <motion.h2
+          initial={{ y: -20 }}
+          animate={{ y: 0 }}
+          className="rashti-title"
+          style={{
+            fontSize: '28px',
+            textAlign: 'center',
+            marginBottom: '30px',
+            color: '#0d3d2e'
+          }}
+        >
+          Programma Fedeltà
+        </motion.h2>
 
-        {filteredRewards.length === 0 ? (
-          <div style={{ textAlign: 'center', color: '#999', padding: '20px' }}>
-            Nessun premio disponibile al momento.
+        {/* User Status Card */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.2 }}
+          style={{
+            background: `linear-gradient(135deg, ${tierInfo.color} 0%, #fff 150%)`,
+            borderRadius: '25px',
+            padding: '30px',
+            marginBottom: '30px',
+            margin: '0 20px',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+            border: '1px solid rgba(255,255,255,0.5)',
+            position: 'relative',
+            overflow: 'hidden'
+          }}
+        >
+          {/* Shine effect */}
+          <div style={{
+            position: 'absolute', top: '-50%', left: '-50%', width: '200%', height: '200%',
+            background: 'radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 60%)',
+            pointerEvents: 'none'
+          }} />
+
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px', position: 'relative' }}>
+            <div style={{ color: tierInfo.textColor, marginRight: '10px' }}>
+              {tierInfo.icon}
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <h3 style={{ margin: 0, fontSize: '24px', color: tierInfo.textColor, fontFamily: 'Cinzel', fontWeight: 700 }}>
+                livello {tierInfo.name}
+              </h3>
+              <div style={{ fontSize: '36px', fontWeight: '800', color: tierInfo.textColor, margin: '5px 0', textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                {userLoyalty.current_points} Punti
+              </div>
+            </div>
           </div>
-        ) : (
-          <div style={{ display: 'grid', gap: '15px' }}>
-            {filteredRewards.map((reward, index) => (
+
+          {tierInfo.nextTier && (
+            <div style={{ marginBottom: '20px', position: 'relative' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <span style={{ fontSize: '13px', color: tierInfo.textColor, fontWeight: 600 }}>Prossimo: {tierInfo.nextTier}</span>
+                <span style={{ fontSize: '13px', color: tierInfo.textColor }}>
+                  ancora {tierInfo.pointsToNext} pt per livellare
+                </span>
+              </div>
+              <div style={{
+                width: '100%',
+                height: '10px',
+                background: 'rgba(0,0,0,0.1)',
+                borderRadius: '5px',
+                overflow: 'hidden'
+              }}>
+                <div style={{
+                  width: `${getTierProgress()}%`,
+                  height: '100%',
+                  background: 'white',
+                  borderRadius: '5px',
+                  transition: 'width 0.3s ease',
+                  boxShadow: '0 0 10px rgba(255,255,255,0.5)'
+                }} />
+              </div>
+            </div>
+          )}
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '20px',
+            fontSize: '14px',
+            color: tierInfo.textColor,
+            position: 'relative'
+          }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '22px', fontWeight: 'bold' }}>
+                {userLoyalty.orders_count}
+              </div>
+              <div style={{ fontFamily: 'Cormorant Garamond', fontWeight: 600 }}>Ordini Fatti</div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '22px', fontWeight: 'bold' }}>
+                {userLoyalty.total_earned}
+              </div>
+              <div style={{ fontFamily: 'Cormorant Garamond', fontWeight: 600 }}>Totale Punti</div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* 🍕 Free Pizza Progress Card */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.25 }}
+          className="rashti-card-light"
+          style={{
+            margin: '0 20px 30px 20px',
+            padding: '20px',
+            border: userLoyalty.orders_count >= 10 ? '2px solid #22c55e' : '1px solid #e2e8f0'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '16px' }}>
+            <div style={{ fontSize: '40px' }}>🍕</div>
+            <div>
+              <h3 style={{ margin: 0, fontSize: '18px', color: '#0d3d2e', fontFamily: 'Cinzel', fontWeight: 700 }}>
+                {userLoyalty.orders_count >= 10 ? 'Pizza Gratis Sbloccata!' : 'Pizza Gratis al 10° ordine'}
+              </h3>
+              <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#666' }}>
+                {userLoyalty.orders_count >= 10
+                  ? 'Riscatta subito la tua pizza!'
+                  : `Mancano ${10 - userLoyalty.orders_count} ordini`}
+              </p>
+            </div>
+          </div>
+
+          <div style={{ marginBottom: '16px' }}>
+            <div style={{
+              width: '100%',
+              height: '12px',
+              background: '#e2e8f0',
+              borderRadius: '6px',
+              overflow: 'hidden'
+            }}>
               <motion.div
-                key={reward.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
+                initial={{ width: 0 }}
+                animate={{ width: `${Math.min((userLoyalty.orders_count / 10) * 100, 100)}%` }}
                 style={{
-                  background: canRedeem(reward.points_required)
-                    ? 'linear-gradient(135deg, rgba(46, 213, 115, 0.1), rgba(46, 213, 115, 0.05))'
-                    : 'rgba(255, 255, 255, 0.9)',
-                  borderRadius: '20px',
-                  padding: '20px',
-                  boxShadow: '0 5px 15px rgba(0,0,0,0.1)',
-                  border: canRedeem(reward.points_required)
-                    ? '2px solid #2ed57320'
-                    : '1px solid rgba(255,255,255,0.3)',
-                  position: 'relative',
-                  opacity: reward.is_active ? 1 : 0.6
+                  height: '100%',
+                  background: userLoyalty.orders_count >= 10
+                    ? '#22c55e'
+                    : '#c9a45c',
+                  borderRadius: '6px'
                 }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                  <div style={{ fontSize: '40px' }}>
-                    {reward.icon}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '5px' }}>
-                      <h4 style={{
-                        margin: 0,
-                        fontSize: '18px',
-                        color: canRedeem(reward.points_required) ? '#2ed573' : '#333',
-                        lineHeight: '1.2',
-                        paddingRight: '10px'
-                      }}>
-                        {reward.name}
-                      </h4>
-                      {canRedeem(reward.points_required) && (
-                        <span style={{
-                          background: '#2ed573',
-                          color: 'white',
-                          padding: '4px 8px',
-                          borderRadius: '8px',
-                          fontSize: '10px',
-                          fontWeight: 'bold',
-                          whiteSpace: 'nowrap',
-                          flexShrink: 0
-                        }}>
-                          Disponibile!
-                        </span>
-                      )}
-                    </div>
+              />
+            </div>
+          </div>
 
-                    <p style={{
-                      margin: '0 0 10px 0',
-                      fontSize: '14px',
-                      color: '#666',
-                      lineHeight: '1.4'
-                    }}>
-                      {reward.description}
-                    </p>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '5px',
-                        fontSize: '14px',
-                        color: '#667eea'
-                      }}>
-                        <Star size={16} fill="#667eea" />
-                        {reward.points_required} punti
+          {userLoyalty.orders_count >= 10 && (
+            <button
+              onClick={() => {
+                const freePizzaReward: LoyaltyReward = {
+                  id: 'free-pizza-10-orders',
+                  name: 'Pizza Gratis (10 Ordini)',
+                  points_required: 0,
+                  description: 'Premio fedeltà!',
+                  icon: '🍕',
+                  is_active: true,
+                  category: 'food'
+                };
+                setSelectedReward(freePizzaReward);
+                setShowRedemptionChoice(true);
+              }}
+              className="rashti-btn-primary"
+              style={{ width: '100%', background: '#22c55e', color: 'white' }}
+            >
+              🎁 Riscatta Subito
+            </button>
+          )}
+        </motion.div>
+
+        {/* Category Filter */}
+        <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', padding: '0 20px 20px 20px' }}>
+          {[
+            { id: 'all', label: 'Tutti', icon: <Gift size={16} /> },
+            { id: 'food', label: 'Cibo', icon: <Utensils size={16} /> },
+            { id: 'discount', label: 'Sconti', icon: <Zap size={16} /> },
+            { id: 'service', label: 'Extra', icon: <Coffee size={16} /> }
+          ].map((category) => (
+            <button
+              key={category.id}
+              onClick={() => setSelectedCategory(category.id as any)}
+              className="rashti-chip"
+              style={{
+                background: selectedCategory === category.id ? 'var(--persian-gold)' : 'transparent',
+                color: selectedCategory === category.id ? '#0d3d2e' : '#0d3d2e',
+                border: selectedCategory === category.id ? 'none' : '1px solid #0d3d2e',
+                fontWeight: 700,
+                display: 'flex', alignItems: 'center', gap: '6px'
+              }}
+            >
+              {category.icon}
+              {category.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Available Rewards */}
+        <div style={{ padding: '0 20px', marginBottom: '30px' }}>
+          <h3 style={{ fontSize: '20px', color: '#0d3d2e', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', fontFamily: 'Cinzel' }}>
+            <Star size={24} color="#c9a45c" fill="#c9a45c" />
+            Premi Disponibili
+          </h3>
+
+          {filteredRewards.length === 0 ? (
+            <div style={{ textAlign: 'center', color: '#999', padding: '20px' }}>
+              Nessun premio disponibile.
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gap: '15px' }}>
+              {filteredRewards.map((reward, index) => (
+                <motion.div
+                  key={reward.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="rashti-card-light"
+                  style={{
+                    padding: '15px',
+                    borderRadius: '16px',
+                    border: canRedeem(reward.points_required) ? '1px solid #c9a45c' : '1px solid transparent',
+                    background: canRedeem(reward.points_required) ? '#fffef0' : 'white',
+                    opacity: reward.is_active ? 1 : 0.6
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                    <div style={{ fontSize: '36px' }}>{reward.icon}</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <h4 style={{ margin: 0, fontSize: '18px', color: '#0d3d2e', fontFamily: 'Cinzel', fontWeight: 700 }}>{reward.name}</h4>
+                        {canRedeem(reward.points_required) && (
+                          <span style={{ background: '#22c55e', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold' }}>SI!</span>
+                        )}
                       </div>
-                      <motion.button
-                        whileHover={canRedeem(reward.points_required) ? { scale: 1.05 } : {}}
-                        whileTap={canRedeem(reward.points_required) ? { scale: 0.95 } : {}}
-                        disabled={!canRedeem(reward.points_required)}
-                        style={{
-                          background: canRedeem(reward.points_required) ? '#2ed573' : '#ccc',
-                          color: 'white',
-                          border: 'none',
-                          padding: '8px 16px',
-                          borderRadius: '12px',
-                          fontSize: '14px',
-                          fontWeight: '600',
-                          cursor: canRedeem(reward.points_required) ? 'pointer' : 'not-allowed'
-                        }}
-                        onClick={() => {
-                          if (canRedeem(reward.points_required)) {
-                            handleRedeemClick(reward);
-                          }
-                        }}
-                      >
-                        {canRedeem(reward.points_required) ? 'Riscatta' : 'Punti insuff.'}
-                      </motion.button>
+                      <p style={{ margin: '4px 0 8px 0', fontSize: '14px', color: '#666' }}>{reward.description}</p>
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#c9a45c' }}>{reward.points_required} punti</span>
+                        <button
+                          disabled={!canRedeem(reward.points_required)}
+                          onClick={() => { if (canRedeem(reward.points_required)) handleRedeemClick(reward); }}
+                          className="rashti-chip"
+                          style={{
+                            fontSize: '12px', padding: '6px 12px',
+                            background: canRedeem(reward.points_required) ? '#0d3d2e' : '#eee',
+                            color: canRedeem(reward.points_required) ? '#c9a45c' : '#999',
+                            border: 'none', cursor: canRedeem(reward.points_required) ? 'pointer' : 'not-allowed'
+                          }}
+                        >
+                          Riscatta
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        )}
-      </motion.div>
-
-      {/* How to Earn Points */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6 }}
-        style={{
-          background: 'rgba(255, 255, 255, 0.9)',
-          borderRadius: '20px',
-          padding: '25px',
-          boxShadow: '0 5px 20px rgba(0,0,0,0.1)'
-        }}
-      >
-        <h3 style={{
-          fontSize: '20px',
-          color: '#333',
-          marginBottom: '20px'
-        }}>
-          Come guadagnare punti 🎯
-        </h3>
-
-        <div style={{ display: 'grid', gap: '15px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <div style={{
-              width: '50px',
-              height: '50px',
-              borderRadius: '12px',
-              background: 'linear-gradient(135deg, #667eea, #764ba2)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '20px'
-            }}>
-              🛒
+                </motion.div>
+              ))}
             </div>
-            <div>
-              <div style={{ fontSize: '16px', fontWeight: '600', color: '#333' }}>Effettua Ordini</div>
-              <div style={{ fontSize: '14px', color: '#666' }}>Guadagna 1 punto per ogni €1 speso</div>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <div style={{
-              width: '50px',
-              height: '50px',
-              borderRadius: '12px',
-              background: 'linear-gradient(135deg, #FF6B6B, #ff8e53)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '20px'
-            }}>
-              ⭐
-            </div>
-            <div>
-              <div style={{ fontSize: '16px', fontWeight: '600', color: '#333' }}>Lascia Recensioni</div>
-              <div style={{ fontSize: '14px', color: '#666' }}>Ricevi 10 punti bonus per ogni recensione</div>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <div style={{
-              width: '50px',
-              height: '50px',
-              borderRadius: '12px',
-              background: 'linear-gradient(135deg, #4ECDC4, #44A08D)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '20px'
-            }}>
-              🎂
-            </div>
-            <div>
-              <div style={{ fontSize: '16px', fontWeight: '600', color: '#333' }}>Bonus Compleanno</div>
-              <div style={{ fontSize: '14px', color: '#666' }}>Ricevi 50 punti il giorno del tuo compleanno</div>
-            </div>
-          </div>
+          )}
         </div>
       </motion.div>
 
@@ -725,191 +513,70 @@ const LoyaltyPage: React.FC<LoyaltyPageProps> = ({ onNavigate }) => {
       <AnimatePresence>
         {showRedemptionChoice && selectedReward && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={() => setShowRedemptionChoice(false)}
             style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: 'rgba(0,0,0,0.8)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 3000,
-              padding: '20px'
+              position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+              background: 'rgba(5, 26, 20, 0.9)', zIndex: 3000,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px'
             }}
           >
             <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
+              initial={{ scale: 0.8 }} animate={{ scale: 1 }}
               onClick={(e) => e.stopPropagation()}
-              style={{
-                background: '#fff',
-                padding: '30px',
-                borderRadius: '24px',
-                maxWidth: '400px',
-                width: '100%',
-                textAlign: 'center',
-                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
-              }}
+              className="rashti-card-light"
+              style={{ width: '100%', maxWidth: '350px', textAlign: 'center', padding: '30px', borderRadius: '24px' }}
             >
-              <div style={{ fontSize: '48px', marginBottom: '15px' }}>{selectedReward.icon}</div>
-              <h3 style={{ margin: '0 0 10px 0', color: '#1f2937', fontSize: '24px', fontWeight: 'bold' }}>
-                {selectedReward.name}
-              </h3>
-              <p style={{ margin: '0 0 25px 0', color: '#6b7280', fontSize: '16px' }}>
-                Come vuoi riscattare questo premio?
-              </p>
+              <div style={{ fontSize: '60px', marginBottom: '15px' }}>{selectedReward.icon}</div>
+              <h3 className="rashti-title" style={{ fontSize: '22px', marginBottom: '10px', color: '#0d3d2e' }}>{selectedReward.name}</h3>
+              <p style={{ color: '#666', marginBottom: '25px', fontFamily: 'Cormorant Garamond' }}>Come vuoi usare questo premio?</p>
 
-              <div style={{ display: 'grid', gap: '12px' }}>
+              <div style={{ display: 'grid', gap: '15px' }}>
                 <button
-                  onClick={() => {
-                    setShowRedemptionChoice(false);
-                    setShowQRModal(true);
-                  }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '10px',
-                    width: '100%',
-                    padding: '16px',
-                    borderRadius: '16px',
-                    border: '1px solid #e5e7eb',
-                    background: '#fff',
-                    color: '#374151',
-                    fontSize: '16px',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}
+                  onClick={() => { setShowRedemptionChoice(false); setShowQRModal(true); }}
+                  className="rashti-btn-primary"
+                  style={{ width: '100%', background: 'white', border: '1px solid #c9a45c', color: '#0d3d2e' }}
                 >
-                  <Store size={20} />
-                  Usa Ora in Negozio (QR)
+                  <Store size={20} style={{ marginRight: '8px' }} />
+                  Usa in Negozio (QR)
                 </button>
-
                 <button
                   onClick={handleAddToCart}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '10px',
-                    width: '100%',
-                    padding: '16px',
-                    borderRadius: '16px',
-                    border: 'none',
-                    background: '#2ed573',
-                    color: 'white',
-                    fontSize: '16px',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    boxShadow: '0 4px 6px -1px rgba(46, 213, 115, 0.4)'
-                  }}
+                  className="rashti-btn-primary"
+                  style={{ width: '100%' }}
                 >
-                  <ShoppingCart size={20} />
-                  Aggiungi all'Ordine
+                  <ShoppingCart size={20} style={{ marginRight: '8px' }} />
+                  Aggiungi al Carrello
                 </button>
               </div>
-
-              <button
-                onClick={() => setShowRedemptionChoice(false)}
-                style={{
-                  marginTop: '20px',
-                  background: 'transparent',
-                  border: 'none',
-                  color: '#9ca3af',
-                  fontSize: '14px',
-                  cursor: 'pointer',
-                  textDecoration: 'underline'
-                }}
-              >
-                Annulla
-              </button>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* QR Code Modal for Loyalty */}
+      {/* QR Modal */}
       <AnimatePresence>
         {showQRModal && selectedReward && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={() => setShowQRModal(false)}
             style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: 'rgba(0,0,0,0.8)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 3000,
-              padding: '20px'
+              position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+              background: 'rgba(5, 26, 20, 0.95)', zIndex: 3000,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px'
             }}
           >
             <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
+              initial={{ scale: 0.8 }} animate={{ scale: 1 }}
               onClick={(e) => e.stopPropagation()}
-              style={{
-                background: '#1e293b',
-                padding: '30px',
-                borderRadius: '32px',
-                maxWidth: '350px',
-                width: '100%',
-                textAlign: 'center',
-                border: '1px solid #334155'
-              }}
+              style={{ background: 'white', padding: '30px', borderRadius: '24px', textAlign: 'center', maxWidth: '320px', width: '100%' }}
             >
-              <h3 style={{ margin: '0 0 5px 0', color: 'white', fontSize: '20px' }}>{selectedReward.name}</h3>
-
-              <div style={{ marginBottom: '15px' }}>
-                <p style={{ margin: '4px 0 0 0', fontSize: '18px', color: '#fb923c', fontWeight: 'bold' }}>
-                  Costo: {selectedReward.points_required} Punti
-                </p>
+              <h3 className="rashti-title" style={{ color: '#0d3d2e', fontSize: '20px', marginBottom: '20px' }}>Mostra alla cassa</h3>
+              <div style={{ background: 'white', padding: '10px', borderRadius: '10px', display: 'inline-block', marginBottom: '20px' }}>
+                <QRCode value={generateQRData(selectedReward)} size={200} />
               </div>
-
-              <div style={{ background: 'white', padding: '15px', display: 'inline-block', borderRadius: '20px' }}>
-                <QRCode
-                  value={generateQRData(selectedReward)}
-                  size={200}
-                  style={{ height: "auto", maxWidth: "100%", width: "100%" }}
-                  viewBox={`0 0 256 256`}
-                />
-              </div>
-
-              <p style={{ marginTop: '20px', color: '#94a3b8', fontSize: '14px' }}>
-                Mostra questo QR code al personale per riscattare il premio.
-              </p>
-
-              <button
-                onClick={() => setShowQRModal(false)}
-                style={{
-                  marginTop: '20px',
-                  background: '#334155',
-                  border: 'none',
-                  padding: '12px 30px',
-                  borderRadius: '15px',
-                  fontSize: '16px',
-                  cursor: 'pointer',
-                  color: 'white',
-                  fontWeight: 'bold'
-                }}
-              >
-                Chiudi
-              </button>
+              <p style={{ color: '#666', marginBottom: '20px', fontSize: '14px' }}>Mostra questo codice allo staff per riscattare: <strong>{selectedReward.name}</strong></p>
+              <button onClick={() => setShowQRModal(false)} className="rashti-btn-primary" style={{ width: '100%' }}>Chiudi</button>
             </motion.div>
           </motion.div>
         )}
@@ -920,73 +587,7 @@ const LoyaltyPage: React.FC<LoyaltyPageProps> = ({ onNavigate }) => {
         onClose={() => setShowAuthModal(false)}
         onSuccess={handleAuthSuccess}
       />
-
-      {/* Floating Cart Button */}
-      <AnimatePresence>
-        {cart.getTotalItems() > 0 && (
-          <motion.div
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-            style={{
-              position: 'fixed',
-              bottom: '24px',
-              left: '0',
-              right: '0',
-              display: 'flex',
-              justifyContent: 'center',
-              zIndex: 50,
-              pointerEvents: 'none'
-            }}
-          >
-            <div style={{ pointerEvents: 'auto' }}>
-              <button
-                onClick={() => onNavigate && onNavigate('cart')}
-                style={{
-                  background: '#ea580c',
-                  color: 'white',
-                  border: 'none',
-                  padding: '16px 32px',
-                  borderRadius: '100px',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  boxShadow: '0 10px 25px -5px rgba(234, 88, 12, 0.5)',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  minWidth: '200px',
-                  justifyContent: 'center'
-                }}
-              >
-                <div style={{ position: 'relative' }}>
-                  <ShoppingCart size={24} />
-                  <span style={{
-                    position: 'absolute',
-                    top: '-8px',
-                    right: '-8px',
-                    background: 'white',
-                    color: '#ea580c',
-                    borderRadius: '50%',
-                    width: '18px',
-                    height: '18px',
-                    fontSize: '11px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 'bold'
-                  }}>
-                    {cart.getTotalItems()}
-                  </span>
-                </div>
-                <span>Go to Cart</span>
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
+    </div>
   );
 };
 

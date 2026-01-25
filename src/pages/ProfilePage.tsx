@@ -16,7 +16,7 @@ const ProfilePage: React.FC = () => {
   const [stats, setStats] = useState({
     totalOrders: 0,
     loyaltyPoints: 0,
-    favoriteOrder: 'Not available'
+    favoriteOrder: 'Non disponibile'
   });
   const [userEmail, setUserEmail] = useState('');
   const [loginEmail, setLoginEmail] = useState('');
@@ -118,7 +118,7 @@ const ProfilePage: React.FC = () => {
       setStats({
         totalOrders: orders.length,
         loyaltyPoints,
-        favoriteOrder: favoriteOrder.includes('items') ? 'Mixed orders' : favoriteOrder
+        favoriteOrder: favoriteOrder.includes('items') ? 'Ordine misto' : favoriteOrder
       });
 
     } catch (error) {
@@ -167,7 +167,7 @@ const ProfilePage: React.FC = () => {
   };
 
   const handleLogout = () => {
-    if (window.confirm('Are you sure you want to log out?')) {
+    if (window.confirm('Sicuro di voler uscire?')) {
       // Use global auth logout which clears everything and dispatches event
       authLogout();
 
@@ -180,484 +180,377 @@ const ProfilePage: React.FC = () => {
 
   if (loading) {
     return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        style={{
-          padding: '40px 20px',
-          minHeight: '60vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '18px',
-          color: '#666'
-        }}
-      >
-        Loading your profile...
-      </motion.div>
+      <div className="rashti-page" style={{ alignItems: 'center', justifyContent: 'center' }}>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-gold" style={{ fontSize: '18px', fontFamily: 'Cinzel' }}>
+          Caricamento profilo...
+        </motion.div>
+      </div>
     );
   }
 
   if (!profile) {
     return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        style={{
-          padding: '40px 20px',
-          minHeight: '60vh',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          textAlign: 'center'
-        }}
-      >
-        <div style={{ fontSize: '60px', marginBottom: '20px' }}>👤</div>
-        <h2 style={{ fontSize: '24px', marginBottom: '10px', color: '#333' }}>
-          Welcome
-        </h2>
-        <p style={{ color: '#666', fontSize: '16px', marginBottom: '20px' }}>
-          Please enter your email to view your profile
-        </p>
-        <div style={{ width: '100%', maxWidth: '300px' }}>
-          <input
-            type="email"
-            placeholder="Enter your email"
-            value={loginEmail}
-            onChange={(e) => setLoginEmail(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '12px',
-              borderRadius: '8px',
-              border: '1px solid #ddd',
-              marginBottom: '10px',
-              fontSize: '16px'
-            }}
-          />
-          <button
-            onClick={() => {
-              if (loginEmail) {
-                localStorage.setItem('customer_email', loginEmail);
-                loadProfile();
-              }
-            }}
-            style={{
-              width: '100%',
-              padding: '12px 24px',
-              borderRadius: '8px',
-              border: 'none',
-              background: '#667eea',
-              color: 'white',
-              fontSize: '16px',
-              cursor: 'pointer'
-            }}
-          >
-            View Profile
-          </button>
-        </div>
-      </motion.div>
+      <div className="rashti-page" style={{ alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="rashti-card-light"
+          style={{
+            padding: '40px 20px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            textAlign: 'center',
+            maxWidth: '350px',
+            width: '100%',
+            borderRadius: '20px'
+          }}
+        >
+          <div style={{ fontSize: '60px', marginBottom: '20px' }}>👤</div>
+          <h2 className="rashti-title" style={{ fontSize: '24px', marginBottom: '10px', color: '#0d3d2e' }}>
+            Benvenuto
+          </h2>
+          <p style={{ color: '#666', fontSize: '16px', marginBottom: '20px', fontFamily: 'Cormorant Garamond' }}>
+            Inserisci la tua email per accedere al profilo.
+          </p>
+          <div style={{ width: '100%' }}>
+            <input
+              type="email"
+              placeholder="latua@email.com"
+              value={loginEmail}
+              onChange={(e) => setLoginEmail(e.target.value)}
+              className="rashti-input"
+              style={{
+                background: 'white',
+                borderColor: '#e2e8f0',
+                color: '#333',
+                marginBottom: '15px'
+              }}
+            />
+            <button
+              onClick={() => {
+                if (loginEmail) {
+                  localStorage.setItem('customer_email', loginEmail);
+                  loadProfile();
+                }
+              }}
+              className="rashti-btn-primary"
+              style={{ width: '100%' }}
+            >
+              Accedi
+            </button>
+          </div>
+        </motion.div>
+      </div>
     );
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      style={{ padding: '20px 0' }}
-    >
-      <motion.h2
-        initial={{ y: -20 }}
-        animate={{ y: 0 }}
-        style={{
-          fontSize: '28px',
-          fontWeight: 'bold',
-          color: '#333',
-          textAlign: 'center',
-          marginBottom: '30px'
-        }}
-      >
-        My Profile 👤
-      </motion.h2>
-
-      {/* Profile Header */}
+    <div className="rashti-page" style={{ overflowY: 'auto' }}>
       <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.2 }}
-        style={{
-          background: 'linear-gradient(135deg, #667eea, #764ba2)',
-          borderRadius: '25px',
-          padding: '30px',
-          textAlign: 'center',
-          marginBottom: '30px',
-          color: 'white',
-          position: 'relative'
-        }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        style={{ padding: '20px 0' }}
       >
-        <motion.div
-          whileHover={{ scale: 1.1 }}
+        <motion.h2
+          initial={{ y: -20 }}
+          animate={{ y: 0 }}
+          className="rashti-title"
           style={{
-            position: 'relative',
-            display: 'inline-block',
-            marginBottom: '15px'
+            fontSize: '28px',
+            textAlign: 'center',
+            marginBottom: '30px',
+            color: '#0d3d2e'
           }}
         >
-          <div
-            style={{
-              width: '100px',
-              height: '100px',
-              borderRadius: '50%',
-              background: 'rgba(255, 255, 255, 0.2)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '40px',
-              margin: '0 auto',
-              border: '3px solid rgba(255, 255, 255, 0.3)'
-            }}
-          >
-            {profile.full_name ? profile.full_name.charAt(0).toUpperCase() : '👤'}
-          </div>
-          <motion.button
+          Il Tuo Profilo
+        </motion.h2>
+
+        {/* Profile Header */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.2 }}
+          style={{
+            background: 'linear-gradient(135deg, #0d3d2e 0%, #1a5c48 100%)',
+            borderRadius: '25px',
+            padding: '30px',
+            textAlign: 'center',
+            marginBottom: '30px',
+            color: 'var(--persian-gold)',
+            position: 'relative',
+            margin: '0 20px',
+            boxShadow: '0 10px 30px rgba(13, 61, 46, 0.3)',
+            border: '1px solid rgba(201, 164, 92, 0.3)'
+          }}
+        >
+          <motion.div
             whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
             style={{
-              position: 'absolute',
-              bottom: '5px',
-              right: '5px',
-              width: '30px',
-              height: '30px',
-              borderRadius: '50%',
-              background: 'rgba(255, 255, 255, 0.9)',
-              border: 'none',
-              color: '#333',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer'
+              position: 'relative',
+              display: 'inline-block',
+              marginBottom: '15px'
             }}
           >
-            <Camera size={16} />
-          </motion.button>
+            <div
+              style={{
+                width: '100px',
+                height: '100px',
+                borderRadius: '50%',
+                background: 'rgba(255, 255, 255, 0.1)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '40px',
+                margin: '0 auto',
+                border: '2px solid var(--persian-gold)'
+              }}
+            >
+              {profile.full_name ? profile.full_name.charAt(0).toUpperCase() : '👤'}
+            </div>
+          </motion.div>
+
+          <h3 className="font-cinzel" style={{ margin: '0 0 5px 0', fontSize: '24px', fontWeight: 700 }}>
+            {profile.full_name || 'Utente'}
+          </h3>
+          <p className="font-garamond" style={{ margin: '0', opacity: 0.9, fontSize: '18px', color: '#e5e7eb' }}>
+            Cliente Time Out Pizza
+          </p>
+
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-around',
+            marginTop: '25px',
+            padding: '20px 0',
+            borderTop: '1px solid rgba(201, 164, 92, 0.3)'
+          }}>
+            <div style={{ textAlign: 'center' }}>
+              <div className="font-cinzel" style={{ fontSize: '24px', fontWeight: 'bold' }}>
+                {stats.totalOrders}
+              </div>
+              <div style={{ fontSize: '12px', opacity: 0.8, textTransform: 'uppercase' }}>
+                Ordini
+              </div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div className="font-cinzel" style={{ fontSize: '24px', fontWeight: 'bold' }}>
+                {stats.loyaltyPoints}
+              </div>
+              <div style={{ fontSize: '12px', opacity: 0.8, textTransform: 'uppercase' }}>
+                Punti
+              </div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div className="font-cinzel" style={{ fontSize: '24px', fontWeight: 'bold' }}>
+                {profile.created_at ? new Date(profile.created_at).getFullYear() : new Date().getFullYear()}
+              </div>
+              <div style={{ fontSize: '12px', opacity: 0.8, textTransform: 'uppercase' }}>
+                Membro
+              </div>
+            </div>
+          </div>
         </motion.div>
 
-        <h3 style={{ margin: '0 0 10px 0', fontSize: '24px' }}>
-          {profile.full_name || 'Anonymous User'}
-        </h3>
-        <p style={{ margin: '0', opacity: 0.9, fontSize: '16px' }}>
-          Time Out Pizza Customer
-        </p>
+        {/* Profile Information */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="rashti-card-light"
+          style={{
+            margin: '0 20px 20px 20px',
+            padding: '25px',
+            borderRadius: '20px'
+          }}
+        >
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '20px'
+          }}>
+            <h3 style={{ color: '#0d3d2e', margin: 0, fontSize: '20px', fontFamily: 'Cinzel' }}>
+              Dati Personali
+            </h3>
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => isEditing ? handleSave() : setIsEditing(true)}
+              disabled={saving}
+              className="rashti-chip"
+              style={{
+                fontSize: '12px',
+                padding: '6px 12px',
+                background: isEditing ? '#2ed573' : 'transparent',
+                color: isEditing ? 'white' : '#0d3d2e',
+                border: '1px solid #0d3d2e'
+              }}
+            >
+              {saving ? (
+                <>Saving...</>
+              ) : (
+                <>
+                  <Edit3 size={14} style={{ marginRight: '4px' }} />
+                  {isEditing ? 'Salva' : 'Modifica'}
+                </>
+              )}
+            </motion.button>
+          </div>
 
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-around',
-          marginTop: '25px',
-          padding: '20px 0',
-          borderTop: '1px solid rgba(255, 255, 255, 0.2)'
-        }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '24px', fontWeight: 'bold' }}>
-              {stats.totalOrders}
+          <div style={{ display: 'grid', gap: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <User size={20} color="#c9a45c" />
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: '12px', color: '#666', display: 'block', textTransform: 'uppercase' }}>
+                  Nome Completo
+                </label>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={profile.full_name || ''}
+                    onChange={(e) => updateProfile('full_name', e.target.value)}
+                    placeholder="Nome e Cognome"
+                    className="rashti-input"
+                    style={{ background: 'white', borderColor: '#e2e8f0', color: '#333' }}
+                  />
+                ) : (
+                  <div style={{ fontSize: '16px', color: '#333', marginTop: '2px', fontFamily: 'Cormorant Garamond', fontWeight: 600 }}>
+                    {profile.full_name || 'Non inserito'}
+                  </div>
+                )}
+              </div>
             </div>
-            <div style={{ fontSize: '12px', opacity: 0.8 }}>
-              Ordini Totali
-            </div>
-          </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '24px', fontWeight: 'bold' }}>
-              {stats.loyaltyPoints}
-            </div>
-            <div style={{ fontSize: '12px', opacity: 0.8 }}>
-              Punti Fedeltà
-            </div>
-          </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '24px', fontWeight: 'bold' }}>
-              {profile.created_at ? new Date(profile.created_at).getFullYear() : new Date().getFullYear()}
-            </div>
-            <div style={{ fontSize: '12px', opacity: 0.8 }}>
-              Member Since
-            </div>
-          </div>
-        </div>
-      </motion.div>
 
-      {/* Profile Information */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        style={{
-          background: 'rgba(255, 255, 255, 0.9)',
-          borderRadius: '20px',
-          padding: '25px',
-          marginBottom: '20px',
-          boxShadow: '0 5px 20px rgba(0,0,0,0.1)'
-        }}
-      >
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '20px'
-        }}>
-          <h3 style={{ color: '#333', margin: 0, fontSize: '20px' }}>
-            Personal Information
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <Mail size={20} color="#c9a45c" />
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: '12px', color: '#666', display: 'block', textTransform: 'uppercase' }}>
+                  Email
+                </label>
+                <div style={{ fontSize: '16px', color: '#333', marginTop: '2px', fontFamily: 'Cormorant Garamond', fontWeight: 600 }}>
+                  {profile.email}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <Phone size={20} color="#c9a45c" />
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: '12px', color: '#666', display: 'block', textTransform: 'uppercase' }}>
+                  Telefono
+                </label>
+                {isEditing ? (
+                  <input
+                    type="tel"
+                    value={profile.phone || ''}
+                    onChange={(e) => updateProfile('phone', e.target.value)}
+                    placeholder="Numero di telefono"
+                    className="rashti-input"
+                    style={{ background: 'white', borderColor: '#e2e8f0', color: '#333' }}
+                  />
+                ) : (
+                  <div style={{ fontSize: '16px', color: '#333', marginTop: '2px', fontFamily: 'Cormorant Garamond', fontWeight: 600 }}>
+                    {profile.phone || 'Non inserito'}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <MapPin size={20} color="#c9a45c" />
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: '12px', color: '#666', display: 'block', textTransform: 'uppercase' }}>
+                  Indirizzo Predefinito
+                </label>
+                {isEditing ? (
+                  <textarea
+                    value={profile.default_address || ''}
+                    onChange={(e) => updateProfile('default_address', e.target.value)}
+                    placeholder="Indirizzo di consegna"
+                    className="rashti-input"
+                    style={{ background: 'white', borderColor: '#e2e8f0', color: '#333', minHeight: '60px', resize: 'vertical' }}
+                  />
+                ) : (
+                  <div style={{ fontSize: '16px', color: '#333', marginTop: '2px', fontFamily: 'Cormorant Garamond', fontWeight: 600 }}>
+                    {profile.default_address || 'Non inserito'}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Preferences */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="rashti-card-light"
+          style={{
+            margin: '0 20px 20px 20px',
+            padding: '25px',
+            borderRadius: '20px'
+          }}
+        >
+          <h3 style={{ color: '#0d3d2e', margin: '0 0 20px 0', fontSize: '20px', fontFamily: 'Cinzel' }}>
+            Preferenze
           </h3>
+
+          <div style={{ display: 'grid', gap: '15px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <Heart size={20} color="#ef4444" />
+              <div>
+                <div style={{ fontSize: '16px', color: '#333', fontWeight: 600 }}>Ordine Preferito</div>
+                <div style={{ fontSize: '14px', color: '#666' }}>
+                  {stats.favoriteOrder}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <Settings size={20} color="#666" />
+              <div>
+                <div style={{ fontSize: '16px', color: '#333', fontWeight: 600 }}>Notifiche</div>
+                <div style={{ fontSize: '14px', color: '#666' }}>
+                  {profile.preferences?.notifications ? 'Abilitate' : 'Disabilitate'} • Aggiornamenti ordine
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Logout Button */}
+        <div style={{ padding: '0 20px' }}>
           <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => isEditing ? handleSave() : setIsEditing(true)}
-            disabled={saving}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+            onClick={handleLogout}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             style={{
-              background: isEditing ? '#2ed573' : '#667eea',
-              border: 'none',
-              color: 'white',
-              padding: '8px 16px',
-              borderRadius: '15px',
-              fontSize: '14px',
-              cursor: saving ? 'not-allowed' : 'pointer',
+              width: '100%',
+              background: 'transparent',
+              color: '#ef4444',
+              border: '2px solid #ef4444',
+              padding: '16px',
+              borderRadius: '20px',
+              fontSize: '16px',
+              fontWeight: 'bold',
+              cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '5px',
-              opacity: saving ? 0.7 : 1
+              justifyContent: 'center',
+              gap: '10px',
+              fontFamily: 'Cinzel'
             }}
           >
-            {saving ? (
-              <>
-                <Save size={16} />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Edit3 size={16} />
-                {isEditing ? 'Save' : 'Edit'}
-              </>
-            )}
+            <LogOut size={20} />
+            Esci
           </motion.button>
         </div>
-
-        <div style={{ display: 'grid', gap: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <User size={20} color="#667eea" />
-            <div style={{ flex: 1 }}>
-              <label style={{ fontSize: '12px', color: '#666', display: 'block' }}>
-                Full Name
-              </label>
-              {isEditing ? (
-                <input
-                  type="text"
-                  value={profile.full_name || ''}
-                  onChange={(e) => updateProfile('full_name', e.target.value)}
-                  placeholder="Enter your full name"
-                  style={{
-                    border: '1px solid #ddd',
-                    borderRadius: '8px',
-                    padding: '8px 12px',
-                    fontSize: '16px',
-                    width: '100%',
-                    marginTop: '2px'
-                  }}
-                />
-              ) : (
-                <div style={{ fontSize: '16px', color: '#333', marginTop: '2px' }}>
-                  {profile.full_name || 'Not provided'}
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <Mail size={20} color="#4ECDC4" />
-            <div style={{ flex: 1 }}>
-              <label style={{ fontSize: '12px', color: '#666', display: 'block' }}>
-                Email Address
-              </label>
-              <div style={{ fontSize: '16px', color: '#333', marginTop: '2px' }}>
-                {profile.email}
-              </div>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <Phone size={20} color="#FF6B6B" />
-            <div style={{ flex: 1 }}>
-              <label style={{ fontSize: '12px', color: '#666', display: 'block' }}>
-                Phone Number
-              </label>
-              {isEditing ? (
-                <input
-                  type="tel"
-                  value={profile.phone || ''}
-                  onChange={(e) => updateProfile('phone', e.target.value)}
-                  placeholder="Enter your phone number"
-                  style={{
-                    border: '1px solid #ddd',
-                    borderRadius: '8px',
-                    padding: '8px 12px',
-                    fontSize: '16px',
-                    width: '100%',
-                    marginTop: '2px'
-                  }}
-                />
-              ) : (
-                <div style={{ fontSize: '16px', color: '#333', marginTop: '2px' }}>
-                  {profile.phone || 'Not provided'}
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <MapPin size={20} color="#FFEAA7" />
-            <div style={{ flex: 1 }}>
-              <label style={{ fontSize: '12px', color: '#666', display: 'block' }}>
-                Default Delivery Address
-              </label>
-              {isEditing ? (
-                <textarea
-                  value={profile.default_address || ''}
-                  onChange={(e) => updateProfile('default_address', e.target.value)}
-                  placeholder="Enter your delivery address"
-                  style={{
-                    border: '1px solid #ddd',
-                    borderRadius: '8px',
-                    padding: '8px 12px',
-                    fontSize: '16px',
-                    width: '100%',
-                    marginTop: '2px',
-                    minHeight: '60px',
-                    resize: 'vertical'
-                  }}
-                />
-              ) : (
-                <div style={{ fontSize: '16px', color: '#333', marginTop: '2px' }}>
-                  {profile.default_address || 'Not provided'}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {isEditing && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            style={{
-              display: 'flex',
-              gap: '10px',
-              marginTop: '20px',
-              justifyContent: 'flex-end'
-            }}
-          >
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setIsEditing(false)}
-              style={{
-                background: 'transparent',
-                border: '2px solid #ddd',
-                color: '#666',
-                padding: '10px 20px',
-                borderRadius: '15px',
-                fontSize: '14px',
-                cursor: 'pointer'
-              }}
-            >
-              Cancel
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleSave}
-              disabled={saving}
-              style={{
-                background: '#2ed573',
-                border: 'none',
-                color: 'white',
-                padding: '10px 20px',
-                borderRadius: '15px',
-                fontSize: '14px',
-                cursor: saving ? 'not-allowed' : 'pointer',
-                opacity: saving ? 0.7 : 1
-              }}
-            >
-              {saving ? 'Saving...' : 'Save Changes'}
-            </motion.button>
-          </motion.div>
-        )}
       </motion.div>
-
-      {/* Preferences */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6 }}
-        style={{
-          background: 'rgba(255, 255, 255, 0.9)',
-          borderRadius: '20px',
-          padding: '25px',
-          marginBottom: '20px',
-          boxShadow: '0 5px 20px rgba(0,0,0,0.1)'
-        }}
-      >
-        <h3 style={{ color: '#333', margin: '0 0 20px 0', fontSize: '20px' }}>
-          Preferences & Stats
-        </h3>
-
-        <div style={{ display: 'grid', gap: '15px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <Heart size={20} color="#FF6B6B" />
-            <div>
-              <div style={{ fontSize: '16px', color: '#333' }}>Favorite Order</div>
-              <div style={{ fontSize: '14px', color: '#666' }}>
-                {stats.favoriteOrder}
-              </div>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <Settings size={20} color="#667eea" />
-            <div>
-              <div style={{ fontSize: '16px', color: '#333' }}>Notifications</div>
-              <div style={{ fontSize: '14px', color: '#666' }}>
-                {profile.preferences?.notifications ? 'Enabled' : 'Disabled'} • Order updates and promotions
-              </div>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Logout Button */}
-      <motion.button
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.7 }}
-        onClick={handleLogout}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        style={{
-          width: '100%',
-          background: '#FF4D4D',
-          color: 'white',
-          border: 'none',
-          padding: '18px',
-          borderRadius: '20px',
-          fontSize: '16px',
-          fontWeight: 'bold',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '10px',
-          boxShadow: '0 5px 20px rgba(255, 77, 77, 0.3)'
-        }}
-      >
-        <LogOut size={20} />
-        Log Out
-      </motion.button>
-    </motion.div>
+    </div>
   );
 };
 
