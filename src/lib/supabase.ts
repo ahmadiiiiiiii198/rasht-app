@@ -190,10 +190,21 @@ export interface ExtraCategory {
   sort_order?: number;
 }
 
+
 export interface ExtraProduct {
   id: string;
   name: string;
   price: number;
   category_id: string;
   is_active: boolean;
+}
+
+// NEW: App Settings Interface
+export interface AppSettings {
+  id: string;
+  setting_key: string;
+  background_image_url: string | null;
+  background_music_url: string | null;
+  created_at: string;
+  updated_at: string;
 }

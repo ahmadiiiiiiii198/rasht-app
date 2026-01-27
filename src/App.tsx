@@ -17,6 +17,8 @@ import { AuthProvider } from './contexts/AuthContext';
 import FCMService from './services/FCMService';
 
 
+import { GlobalSettings } from './components/GlobalSettings';
+
 // Page Components
 import MenuPage from './pages/MenuPage';
 import OrdersPage from './pages/OrdersPage';
@@ -213,6 +215,7 @@ function App() {
 
   return (
     <BusinessHoursProvider>
+      <GlobalSettings />
       <AuthProvider>
         <NotificationListener />
         <div className="app">
