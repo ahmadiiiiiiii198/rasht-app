@@ -319,14 +319,14 @@ const MenuPage: React.FC<MenuPageProps> = ({ onNavigate }) => {
         overflowY: 'auto',
         scrollSnapType: 'y mandatory',
         height: '100%',
-        marginTop: '50vh', // List starts higher to reduce gap
+        marginTop: '38vh', // Reduced significantly to minimize gap
         position: 'relative',
         zIndex: 10,
         background: 'linear-gradient(180deg, rgba(8, 41, 32, 0.95) 0%, #051a14 100%)',
         borderTopLeftRadius: '30px',
         borderTopRightRadius: '30px',
         boxShadow: '0 -10px 40px rgba(0,0,0,0.5)',
-        paddingTop: '20px',
+        paddingTop: '15px',
         backdropFilter: 'blur(10px)'
       }}>
         {/* Category Description Banner */}
@@ -360,28 +360,29 @@ const MenuPage: React.FC<MenuPageProps> = ({ onNavigate }) => {
               ref={(el) => { productRefs.current[product.id] = el; }}
               data-id={product.id}
               style={{
-                height: '55vh', // Increased height to prevent cutoff
+                minHeight: '280px', // Fixed minimum height instead of viewport height
+                maxHeight: '320px',
                 scrollSnapAlign: 'start',
                 display: 'flex',
-                alignItems: 'center',
+                alignItems: 'stretch',
                 justifyContent: 'center',
-                padding: '10px 20px',
+                padding: '8px 16px',
+                marginBottom: '12px',
               }}
             >
               <motion.div
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ amount: 0.2, once: true }}
-                transition={{ type: 'tween', duration: 0.25, ease: 'easeOut' }}
+                transition={{ type: 'tween', duration: 0.2, ease: 'easeOut' }}
                 className="rashti-card"
                 style={{
                   width: '100%',
                   maxWidth: '600px',
-                  height: '100%',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
-                  padding: '20px', // Reduced padding
+                  padding: '16px',
                   opacity: isComingSoon ? 0.8 : 1,
                   background: 'linear-gradient(145deg, rgba(8, 41, 32, 0.6) 0%, rgba(5, 26, 20, 0.8) 100%)',
                   border: '1px solid rgba(255, 255, 255, 0.05)',
@@ -389,30 +390,30 @@ const MenuPage: React.FC<MenuPageProps> = ({ onNavigate }) => {
                 }}
               >
                 {/* Header: Chip + Rating */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                   <span className="rashti-chip active" style={{
-                    fontSize: '11px',
-                    padding: '6px 12px',
+                    fontSize: '10px',
+                    padding: '4px 10px',
                     background: isComingSoon ? '#fbbf24' : 'var(--persian-gold)',
                     color: 'var(--persian-emerald-dark)',
-                    letterSpacing: '1px',
+                    letterSpacing: '0.5px',
                     fontWeight: 800
                   }}>
                     {isComingSoon ? 'COMING SOON' : (productCategory?.name?.toUpperCase() || 'ITEM')}
                   </span>
                   {!isComingSoon && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(0,0,0,0.2)', padding: '4px 8px', borderRadius: '12px' }}>
-                      <Star size={12} fill="#c9a45c" color="#c9a45c" />
-                      <span className="text-gold" style={{ fontWeight: 'bold', fontSize: '12px' }}>4.8</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '3px', background: 'rgba(0,0,0,0.2)', padding: '3px 6px', borderRadius: '10px' }}>
+                      <Star size={10} fill="#c9a45c" color="#c9a45c" />
+                      <span className="text-gold" style={{ fontWeight: 'bold', fontSize: '11px' }}>4.8</span>
                     </div>
                   )}
                 </div>
 
                 {/* Content: Title, Jersey, Desc */}
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '10px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    {/* Jersey Icon - Slightly Larger */}
-                    <div style={{ width: '50px', height: '60px', flexShrink: 0, filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))' }}>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '6px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    {/* Jersey Icon - Compact */}
+                    <div style={{ width: '40px', height: '48px', flexShrink: 0, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}>
                       <JerseyImage
                         src={(product.image_url && product.image_url.startsWith('jersey')) ? product.image_url : ''}
                         text={product.name}
@@ -422,37 +423,36 @@ const MenuPage: React.FC<MenuPageProps> = ({ onNavigate }) => {
                     </div>
 
                     <h2 className="rashti-title" style={{
-                      fontSize: '22px',
-                      lineHeight: '1.1',
+                      fontSize: '18px',
+                      lineHeight: '1.15',
                       borderBottom: 'none',
                       margin: 0,
-                      textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                      textShadow: '0 1px 2px rgba(0,0,0,0.3)'
                     }}>
                       {product.name}
                     </h2>
                   </div>
 
                   <p style={{
-                    color: 'rgba(255, 255, 255, 0.8)',
-                    fontSize: '15px',
-                    lineHeight: '1.6',
+                    color: 'rgba(255, 255, 255, 0.75)',
+                    fontSize: '13px',
+                    lineHeight: '1.4',
                     fontFamily: 'Cormorant Garamond',
                     overflow: 'hidden',
                     display: '-webkit-box',
-                    WebkitLineClamp: 3,
+                    WebkitLineClamp: 2,
                     WebkitBoxOrient: 'vertical',
-                    margin: 0,
-                    paddingRight: '10px'
+                    margin: 0
                   }}>
                     {product.description || "Delicious, fresh ingredients prepared in the traditional Rashti style."}
                   </p>
                 </div>
 
                 {/* Footer: Price + Add Button */}
-                <div style={{ marginTop: 'auto', paddingTop: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{ marginTop: '10px', paddingTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span className="text-gold" style={{ fontSize: '10px', textTransform: 'uppercase', fontWeight: 'bold', opacity: 0.6, letterSpacing: '1px' }}>Prezzo</span>
-                    <span className="text-gold" style={{ fontSize: '26px', fontWeight: '800', fontFamily: 'Cinzel', lineHeight: '1' }}>
+                    <span className="text-gold" style={{ fontSize: '9px', textTransform: 'uppercase', fontWeight: 'bold', opacity: 0.6, letterSpacing: '0.5px' }}>Prezzo</span>
+                    <span className="text-gold" style={{ fontSize: '22px', fontWeight: '800', fontFamily: 'Cinzel', lineHeight: '1' }}>
                       €{(typeof product.price === 'string' ? parseFloat(product.price) : (product.price || 0)).toFixed(2)}
                     </span>
                   </div>
@@ -466,28 +466,28 @@ const MenuPage: React.FC<MenuPageProps> = ({ onNavigate }) => {
                       color: '#6b7280',
                       cursor: 'not-allowed',
                       border: '1px solid rgba(255,255,255,0.1)',
-                      padding: '12px 24px',
-                      borderRadius: '14px',
+                      padding: '10px 18px',
+                      borderRadius: '12px',
                       fontWeight: 'bold',
-                      fontSize: '13px',
+                      fontSize: '12px',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '8px'
+                      gap: '6px'
                     } : {
-                      padding: '12px 28px',
-                      fontSize: '15px',
-                      boxShadow: '0 4px 15px rgba(201, 164, 92, 0.3)'
+                      padding: '10px 20px',
+                      fontSize: '13px',
+                      boxShadow: '0 4px 12px rgba(201, 164, 92, 0.3)'
                     }}
                   >
                     {isComingSoon ? (
                       <>
-                        <Clock size={18} />
-                        <span style={{ fontWeight: 'bold', letterSpacing: '1px' }}>SOON</span>
+                        <Clock size={16} />
+                        <span style={{ fontWeight: 'bold', letterSpacing: '0.5px' }}>SOON</span>
                       </>
                     ) : (
                       <>
-                        <Plus size={20} />
-                        <span style={{ fontWeight: 'bold', letterSpacing: '1px' }}>AGGIUNGI</span>
+                        <Plus size={18} />
+                        <span style={{ fontWeight: 'bold', letterSpacing: '0.5px' }}>AGGIUNGI</span>
                       </>
                     )}
                   </button>
