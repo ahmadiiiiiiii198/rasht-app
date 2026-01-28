@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from './lib/supabase';
-import { Plus, Edit, Trash2, Image as ImageIcon, ChevronRight, X, Clock, Check, FolderPlus } from 'lucide-react';
+import { Plus, Edit, Trash2, Image as ImageIcon, ChevronRight, X, Clock, Check, FolderPlus, Upload, Loader } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Types
@@ -31,6 +31,9 @@ const MenuManager = () => {
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
     const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+    const [uploading, setUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Modals
     const [showCategoryModal, setShowCategoryModal] = useState(false);
@@ -83,6 +86,77 @@ const MenuManager = () => {
 
     const toggleCategory = (id: string) => {
         setExpandedCategory(expandedCategory === id ? null : id);
+    };
+
+    // Image Upload Handler
+    const handleImageUpload = async (file: File): Promise<string | null> => {
+        try {
+            setUploading(true);
+            setUploadProgress(0);
+
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+            const filePath = `product-images/${fileName}`;
+
+            // Simulate progress (Supabase doesn't provide upload progress natively)
+            const progressInterval = setInterval(() => {
+                setUploadProgress(prev => Math.min(prev + 10, 90));
+            }, 100);
+
+            const { data, error } = await supabase.storage
+                .from('product-images')
+                .upload(filePath, file, {
+                    cacheControl: '3600',
+                    upsert: false
+                });
+
+            clearInterval(progressInterval);
+            setUploadProgress(100);
+
+            if (error) {
+                console.error('Upload error:', error);
+                alert('Failed to upload image. Make sure storage bucket exists.');
+                return null;
+            }
+
+            // Get public URL
+            const { data: urlData } = supabase.storage
+                .from('product-images')
+                .getPublicUrl(filePath);
+
+            setTimeout(() => {
+                setUploading(false);
+                setUploadProgress(0);
+            }, 500);
+
+            return urlData.publicUrl;
+        } catch (err) {
+            console.error('Upload error:', err);
+            setUploading(false);
+            return null;
+        }
+    };
+
+    const onFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            alert('Please select an image file');
+            return;
+        }
+
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('File size must be less than 5MB');
+            return;
+        }
+
+        const url = await handleImageUpload(file);
+        if (url) {
+            setProductForm({ ...productForm, image_url: url });
+        }
     };
 
     // Category Actions
@@ -208,14 +282,49 @@ const MenuManager = () => {
         fetchMenu();
     };
 
-    if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading menu data...</div>;
+    if (loading) {
+        return (
+            <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '50vh',
+                gap: '1rem',
+                color: 'var(--persian-gold)'
+            }}>
+                <Loader className="animate-spin" size={24} />
+                <span>Loading menu...</span>
+            </div>
+        );
+    }
 
     return (
-        <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-                <h3 className="page-title" style={{ margin: 0 }}>Menu Overview</h3>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button className="btn" onClick={openAddCategory} style={{ background: '#f1f5f9' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+            {/* Header */}
+            <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '2rem',
+                gap: '1rem',
+                flexWrap: 'wrap'
+            }}>
+                <div>
+                    <h2 style={{
+                        margin: 0,
+                        fontSize: '1.75rem',
+                        background: 'linear-gradient(135deg, #c9a45c, #d4b76a)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent'
+                    }}>
+                        Menu Management
+                    </h2>
+                    <p style={{ margin: '0.5rem 0 0', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
+                        {categories.length} categories • {categories.reduce((acc, c) => acc + (c.products?.length || 0), 0)} products
+                    </p>
+                </div>
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                    <button className="btn btn-secondary" onClick={openAddCategory}>
                         <FolderPlus size={18} /> New Category
                     </button>
                     <button className="btn btn-primary" onClick={() => { setSelectedCategoryId(categories[0]?.id || null); setShowProductModal(true); }}>
@@ -224,64 +333,48 @@ const MenuManager = () => {
                 </div>
             </div>
 
-            <div className="categories-list" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {/* Categories List */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {categories.map((category) => (
-                    <div key={category.id} className="card" style={{ overflow: 'hidden' }}>
+                    <motion.div
+                        key={category.id}
+                        className="card"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                    >
                         <div
                             className="card-header"
                             onClick={() => toggleCategory(category.id)}
                             style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                                padding: '1rem 1.25rem',
-                                cursor: 'pointer',
-                                background: category.coming_soon ? '#fffbeb' : 'white'
+                                background: category.coming_soon ? 'rgba(245, 158, 11, 0.1)' : 'transparent'
                             }}
                         >
                             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                <div style={{
-                                    transition: 'transform 0.2s',
-                                    transform: expandedCategory === category.id ? 'rotate(90deg)' : 'none'
-                                }}>
-                                    <ChevronRight size={20} color="#94a3b8" />
-                                </div>
-                                <h4 style={{ margin: 0, fontSize: '1.1rem' }}>{category.name}</h4>
-                                <span className="badge" style={{
-                                    background: '#f1f5f9',
-                                    padding: '4px 10px',
-                                    borderRadius: 12,
-                                    fontSize: '0.75rem'
-                                }}>
+                                <motion.div
+                                    animate={{ rotate: expandedCategory === category.id ? 90 : 0 }}
+                                    transition={{ duration: 0.2 }}
+                                >
+                                    <ChevronRight size={20} color="var(--persian-gold)" />
+                                </motion.div>
+                                <h4 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-primary)' }}>
+                                    {category.name}
+                                </h4>
+                                <span className="badge badge-muted">
                                     {category.products?.length || 0} items
                                 </span>
                                 {category.coming_soon && (
-                                    <span style={{
-                                        background: '#fef3c7',
-                                        color: '#92400e',
-                                        padding: '4px 10px',
-                                        borderRadius: 12,
-                                        fontSize: '0.7rem',
-                                        fontWeight: 600
-                                    }}>
+                                    <span className="badge badge-warning">
                                         <Clock size={12} style={{ marginRight: 4 }} /> Coming Soon
                                     </span>
                                 )}
                             </div>
-                            <div className="actions" style={{ display: 'flex', gap: '0.5rem' }}>
-                                <button
-                                    className="action-btn"
-                                    onClick={(e) => openEditCategory(category, e)}
-                                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 8 }}
-                                >
-                                    <Edit size={18} color="#64748b" />
+                            <div className="actions">
+                                <button className="action-btn" onClick={(e) => openEditCategory(category, e)}>
+                                    <Edit size={18} />
                                 </button>
-                                <button
-                                    className="action-btn"
-                                    onClick={(e) => deleteCategory(category.id, e)}
-                                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 8 }}
-                                >
-                                    <Trash2 size={18} color="#ef4444" />
+                                <button className="action-btn danger" onClick={(e) => deleteCategory(category.id, e)}>
+                                    <Trash2 size={18} />
                                 </button>
                             </div>
                         </div>
@@ -292,101 +385,95 @@ const MenuManager = () => {
                                     initial={{ height: 0, opacity: 0 }}
                                     animate={{ height: 'auto', opacity: 1 }}
                                     exit={{ height: 0, opacity: 0 }}
+                                    transition={{ duration: 0.3 }}
                                 >
-                                    <div className="card-content" style={{ padding: '1rem 1.25rem', background: '#f8fafc' }}>
+                                    <div className="card-content">
                                         {category.products?.map(product => (
-                                            <div key={product.id} className="product-item" style={{
-                                                display: 'flex',
-                                                justifyContent: 'space-between',
-                                                alignItems: 'center',
-                                                padding: '1rem',
-                                                background: product.coming_soon ? '#fffbeb' : 'white',
-                                                borderRadius: 8,
-                                                marginBottom: 8,
-                                                border: '1px solid #e2e8f0'
-                                            }}>
-                                                <div className="product-info" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                                    <div style={{ position: 'relative', width: 48, height: 48 }}>
+                                            <motion.div
+                                                key={product.id}
+                                                className="product-item"
+                                                initial={{ opacity: 0, x: -10 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                style={{
+                                                    background: product.coming_soon ? 'rgba(245, 158, 11, 0.05)' : 'var(--bg-secondary)'
+                                                }}
+                                            >
+                                                <div className="product-info">
+                                                    <div style={{ position: 'relative', width: 56, height: 56 }}>
                                                         {product.image_url ? (
-                                                            <img src={product.image_url} alt={product.name} style={{
-                                                                width: 48, height: 48, borderRadius: 8, objectFit: 'cover'
-                                                            }} />
+                                                            <img
+                                                                src={product.image_url}
+                                                                alt={product.name}
+                                                                className="product-thumb"
+                                                            />
                                                         ) : (
                                                             <div style={{
-                                                                width: 48, height: 48, borderRadius: 8, background: '#f1f5f9',
-                                                                display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                                                width: 56,
+                                                                height: 56,
+                                                                borderRadius: 10,
+                                                                background: 'var(--persian-emerald)',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                border: '2px solid var(--border-color)'
                                                             }}>
-                                                                <ImageIcon size={20} color="#cbd5e1" />
+                                                                <ImageIcon size={24} color="var(--persian-gold)" />
                                                             </div>
                                                         )}
                                                     </div>
                                                     <div>
                                                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                                            <h5 style={{ margin: '0 0 4px 0', fontWeight: 600 }}>{product.name}</h5>
+                                                            <span className="product-name">{product.name}</span>
                                                             {product.coming_soon && (
-                                                                <span style={{
-                                                                    background: '#fef3c7',
-                                                                    color: '#92400e',
-                                                                    padding: '2px 8px',
-                                                                    borderRadius: 10,
-                                                                    fontSize: '0.65rem',
-                                                                    fontWeight: 600
-                                                                }}>
+                                                                <span className="badge badge-warning" style={{ fontSize: '0.65rem' }}>
                                                                     Coming Soon
                                                                 </span>
                                                             )}
                                                         </div>
-                                                        <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>€{product.price}</p>
+                                                        <span className="product-price">€{product.price.toFixed(2)}</span>
                                                     </div>
                                                 </div>
 
-                                                <div className="actions" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                                <div className="actions">
                                                     <button
                                                         onClick={() => toggleProductComingSoon(product)}
                                                         title={product.coming_soon ? 'Mark as Available' : 'Mark as Coming Soon'}
                                                         style={{
-                                                            background: product.coming_soon ? '#dcfce7' : '#fef3c7',
+                                                            background: product.coming_soon ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)',
                                                             border: 'none',
-                                                            borderRadius: 6,
-                                                            padding: '6px 10px',
+                                                            borderRadius: 8,
+                                                            padding: '8px 12px',
                                                             cursor: 'pointer',
                                                             display: 'flex',
                                                             alignItems: 'center',
-                                                            gap: 4,
-                                                            fontSize: '0.75rem'
+                                                            gap: 6,
+                                                            fontSize: '0.75rem',
+                                                            fontWeight: 600,
+                                                            color: product.coming_soon ? 'var(--success)' : 'var(--warning)'
                                                         }}
                                                     >
                                                         {product.coming_soon ? <Check size={14} /> : <Clock size={14} />}
                                                         {product.coming_soon ? 'Available' : 'Coming Soon'}
                                                     </button>
-                                                    <button
-                                                        onClick={() => openEditProduct(product)}
-                                                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 8 }}
-                                                        title="Edit"
-                                                    >
-                                                        <Edit size={18} color="#64748b" />
+                                                    <button className="action-btn" onClick={() => openEditProduct(product)}>
+                                                        <Edit size={18} />
                                                     </button>
-                                                    <button
-                                                        onClick={() => deleteProduct(product.id)}
-                                                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 8 }}
-                                                        title="Delete"
-                                                    >
-                                                        <Trash2 size={18} color="#ef4444" />
+                                                    <button className="action-btn danger" onClick={() => deleteProduct(product.id)}>
+                                                        <Trash2 size={18} />
                                                     </button>
                                                 </div>
-                                            </div>
+                                            </motion.div>
                                         ))}
 
                                         <button
                                             onClick={() => openAddProduct(category.id)}
-                                            className="btn"
+                                            className="btn btn-secondary"
                                             style={{
                                                 width: '100%',
-                                                marginTop: '0.5rem',
+                                                marginTop: '1rem',
                                                 justifyContent: 'center',
-                                                border: '2px dashed #e2e8f0',
-                                                background: 'transparent',
-                                                color: '#64748b'
+                                                border: '2px dashed var(--border-color)',
+                                                background: 'transparent'
                                             }}
                                         >
                                             <Plus size={18} /> Add Product to {category.name}
@@ -395,196 +482,269 @@ const MenuManager = () => {
                                 </motion.div>
                             )}
                         </AnimatePresence>
-                    </div>
+                    </motion.div>
                 ))}
             </div>
 
             {/* Category Modal */}
-            {showCategoryModal && (
-                <div style={{
-                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                    background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    zIndex: 1000
-                }}>
-                    <div className="card" style={{ width: '100%', maxWidth: 450, padding: '1.5rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-                            <h3 style={{ margin: 0 }}>{editingCategory ? 'Edit Category' : 'New Category'}</h3>
-                            <button onClick={() => setShowCategoryModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-                                <X size={24} />
-                            </button>
-                        </div>
-
-                        <form onSubmit={saveCategory}>
-                            <div style={{ marginBottom: '1rem' }}>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Name</label>
-                                <input
-                                    type="text"
-                                    value={categoryForm.name}
-                                    onChange={e => setCategoryForm({ ...categoryForm, name: e.target.value })}
-                                    required
-                                    style={{ width: '100%', padding: '0.75rem', borderRadius: 8, border: '1px solid #e2e8f0' }}
-                                />
+            <AnimatePresence>
+                {showCategoryModal && (
+                    <motion.div
+                        className="modal-overlay"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <motion.div
+                            className="modal"
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                        >
+                            <div className="modal-header">
+                                <h3 className="modal-title">{editingCategory ? 'Edit Category' : 'New Category'}</h3>
+                                <button className="modal-close" onClick={() => setShowCategoryModal(false)}>
+                                    <X size={24} />
+                                </button>
                             </div>
 
-                            <div style={{ marginBottom: '1rem' }}>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Sort Order</label>
-                                <input
-                                    type="number"
-                                    value={categoryForm.sort_order}
-                                    onChange={e => setCategoryForm({ ...categoryForm, sort_order: parseInt(e.target.value) })}
-                                    style={{ width: '100%', padding: '0.75rem', borderRadius: 8, border: '1px solid #e2e8f0' }}
-                                />
-                            </div>
+                            <form onSubmit={saveCategory}>
+                                <div className="modal-body">
+                                    <div className="form-group">
+                                        <label className="form-label">Name</label>
+                                        <input
+                                            type="text"
+                                            className="form-input"
+                                            value={categoryForm.name}
+                                            onChange={e => setCategoryForm({ ...categoryForm, name: e.target.value })}
+                                            required
+                                            placeholder="e.g. Pizze, Bevande..."
+                                        />
+                                    </div>
 
-                            <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem' }}>
-                                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                                    <input
-                                        type="checkbox"
-                                        checked={categoryForm.is_active}
-                                        onChange={e => setCategoryForm({ ...categoryForm, is_active: e.target.checked })}
-                                    />
-                                    Active
-                                </label>
-                                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                                    <input
-                                        type="checkbox"
-                                        checked={categoryForm.coming_soon}
-                                        onChange={e => setCategoryForm({ ...categoryForm, coming_soon: e.target.checked })}
-                                    />
-                                    Coming Soon
-                                </label>
-                            </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Sort Order</label>
+                                        <input
+                                            type="number"
+                                            className="form-input"
+                                            value={categoryForm.sort_order}
+                                            onChange={e => setCategoryForm({ ...categoryForm, sort_order: parseInt(e.target.value) })}
+                                        />
+                                    </div>
 
-                            <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-                                {editingCategory ? 'Save Changes' : 'Create Category'}
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            )}
+                                    <div style={{ display: 'flex', gap: '2rem' }}>
+                                        <label className="form-checkbox">
+                                            <input
+                                                type="checkbox"
+                                                checked={categoryForm.is_active}
+                                                onChange={e => setCategoryForm({ ...categoryForm, is_active: e.target.checked })}
+                                            />
+                                            <span>Active</span>
+                                        </label>
+                                        <label className="form-checkbox">
+                                            <input
+                                                type="checkbox"
+                                                checked={categoryForm.coming_soon}
+                                                onChange={e => setCategoryForm({ ...categoryForm, coming_soon: e.target.checked })}
+                                            />
+                                            <span>Coming Soon</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div className="modal-footer">
+                                    <button type="button" className="btn btn-secondary" onClick={() => setShowCategoryModal(false)}>
+                                        Cancel
+                                    </button>
+                                    <button type="submit" className="btn btn-primary">
+                                        {editingCategory ? 'Save Changes' : 'Create Category'}
+                                    </button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Product Modal */}
-            {showProductModal && (
-                <div style={{
-                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                    background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    zIndex: 1000, overflow: 'auto', padding: '2rem 0'
-                }}>
-                    <div className="card" style={{ width: '100%', maxWidth: 550, padding: '1.5rem', margin: 'auto' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-                            <h3 style={{ margin: 0 }}>{editingProduct ? 'Edit Product' : 'New Product'}</h3>
-                            <button onClick={() => setShowProductModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-                                <X size={24} />
-                            </button>
-                        </div>
-
-                        <form onSubmit={saveProduct}>
-                            <div style={{ marginBottom: '1rem' }}>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Category</label>
-                                <select
-                                    value={selectedCategoryId || ''}
-                                    onChange={e => setSelectedCategoryId(e.target.value)}
-                                    required
-                                    style={{ width: '100%', padding: '0.75rem', borderRadius: 8, border: '1px solid #e2e8f0' }}
-                                >
-                                    <option value="">Select Category</option>
-                                    {categories.map(c => (
-                                        <option key={c.id} value={c.id}>{c.name}</option>
-                                    ))}
-                                </select>
+            <AnimatePresence>
+                {showProductModal && (
+                    <motion.div
+                        className="modal-overlay"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <motion.div
+                            className="modal"
+                            style={{ maxWidth: 600 }}
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                        >
+                            <div className="modal-header">
+                                <h3 className="modal-title">{editingProduct ? 'Edit Product' : 'New Product'}</h3>
+                                <button className="modal-close" onClick={() => setShowProductModal(false)}>
+                                    <X size={24} />
+                                </button>
                             </div>
 
-                            <div style={{ marginBottom: '1rem' }}>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Name</label>
-                                <input
-                                    type="text"
-                                    value={productForm.name}
-                                    onChange={e => setProductForm({ ...productForm, name: e.target.value })}
-                                    required
-                                    style={{ width: '100%', padding: '0.75rem', borderRadius: 8, border: '1px solid #e2e8f0' }}
-                                />
-                            </div>
+                            <form onSubmit={saveProduct}>
+                                <div className="modal-body">
+                                    {/* Image Upload Zone */}
+                                    <div className="form-group">
+                                        <label className="form-label">Product Image</label>
+                                        <input
+                                            ref={fileInputRef}
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={onFileSelect}
+                                            style={{ display: 'none' }}
+                                        />
+                                        <div
+                                            className={`image-upload-zone ${productForm.image_url ? 'has-image' : ''}`}
+                                            onClick={() => fileInputRef.current?.click()}
+                                        >
+                                            {uploading ? (
+                                                <div style={{ padding: '2rem', textAlign: 'center' }}>
+                                                    <Loader className="animate-spin" size={32} color="var(--persian-gold)" />
+                                                    <p style={{ margin: '1rem 0 0', color: 'var(--text-secondary)' }}>
+                                                        Uploading... {uploadProgress}%
+                                                    </p>
+                                                    <div className="upload-progress" style={{ width: `${uploadProgress}%` }} />
+                                                </div>
+                                            ) : productForm.image_url ? (
+                                                <img src={productForm.image_url} alt="Product" />
+                                            ) : (
+                                                <>
+                                                    <Upload size={40} className="image-upload-icon" />
+                                                    <p className="image-upload-text">Click to upload image</p>
+                                                    <p className="image-upload-hint">PNG, JPG up to 5MB</p>
+                                                </>
+                                            )}
+                                        </div>
+                                        {productForm.image_url && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setProductForm({ ...productForm, image_url: '' })}
+                                                style={{
+                                                    marginTop: '0.5rem',
+                                                    background: 'transparent',
+                                                    border: 'none',
+                                                    color: 'var(--danger)',
+                                                    cursor: 'pointer',
+                                                    fontSize: '0.875rem'
+                                                }}
+                                            >
+                                                Remove Image
+                                            </button>
+                                        )}
+                                    </div>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Price (€)</label>
-                                    <input
-                                        type="number"
-                                        step="0.01"
-                                        value={productForm.price}
-                                        onChange={e => setProductForm({ ...productForm, price: parseFloat(e.target.value) })}
-                                        style={{ width: '100%', padding: '0.75rem', borderRadius: 8, border: '1px solid #e2e8f0' }}
-                                    />
+                                    <div className="form-group">
+                                        <label className="form-label">Category</label>
+                                        <select
+                                            className="form-select"
+                                            value={selectedCategoryId || ''}
+                                            onChange={e => setSelectedCategoryId(e.target.value)}
+                                            required
+                                        >
+                                            <option value="">Select Category</option>
+                                            {categories.map(c => (
+                                                <option key={c.id} value={c.id}>{c.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label className="form-label">Name</label>
+                                        <input
+                                            type="text"
+                                            className="form-input"
+                                            value={productForm.name}
+                                            onChange={e => setProductForm({ ...productForm, name: e.target.value })}
+                                            required
+                                            placeholder="e.g. Margherita, Diavola..."
+                                        />
+                                    </div>
+
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                        <div className="form-group">
+                                            <label className="form-label">Price (€)</label>
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                className="form-input"
+                                                value={productForm.price}
+                                                onChange={e => setProductForm({ ...productForm, price: parseFloat(e.target.value) })}
+                                            />
+                                        </div>
+                                        <div className="form-group">
+                                            <label className="form-label">Sort Order</label>
+                                            <input
+                                                type="number"
+                                                className="form-input"
+                                                value={productForm.sort_order}
+                                                onChange={e => setProductForm({ ...productForm, sort_order: parseInt(e.target.value) })}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label className="form-label">Description</label>
+                                        <textarea
+                                            className="form-textarea"
+                                            value={productForm.description}
+                                            onChange={e => setProductForm({ ...productForm, description: e.target.value })}
+                                            placeholder="Brief description of the product..."
+                                            rows={2}
+                                        />
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label className="form-label">Ingredients (comma separated)</label>
+                                        <input
+                                            type="text"
+                                            className="form-input"
+                                            value={productForm.ingredients}
+                                            onChange={e => setProductForm({ ...productForm, ingredients: e.target.value })}
+                                            placeholder="Mozzarella, Pomodoro, Basilico..."
+                                        />
+                                    </div>
+
+                                    <div style={{ display: 'flex', gap: '2rem' }}>
+                                        <label className="form-checkbox">
+                                            <input
+                                                type="checkbox"
+                                                checked={productForm.is_active}
+                                                onChange={e => setProductForm({ ...productForm, is_active: e.target.checked })}
+                                            />
+                                            <span>Active</span>
+                                        </label>
+                                        <label className="form-checkbox">
+                                            <input
+                                                type="checkbox"
+                                                checked={productForm.coming_soon}
+                                                onChange={e => setProductForm({ ...productForm, coming_soon: e.target.checked })}
+                                            />
+                                            <span>Coming Soon</span>
+                                        </label>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Sort Order</label>
-                                    <input
-                                        type="number"
-                                        value={productForm.sort_order}
-                                        onChange={e => setProductForm({ ...productForm, sort_order: parseInt(e.target.value) })}
-                                        style={{ width: '100%', padding: '0.75rem', borderRadius: 8, border: '1px solid #e2e8f0' }}
-                                    />
+
+                                <div className="modal-footer">
+                                    <button type="button" className="btn btn-secondary" onClick={() => setShowProductModal(false)}>
+                                        Cancel
+                                    </button>
+                                    <button type="submit" className="btn btn-primary" disabled={uploading}>
+                                        {editingProduct ? 'Save Changes' : 'Create Product'}
+                                    </button>
                                 </div>
-                            </div>
-
-                            <div style={{ marginBottom: '1rem' }}>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Description</label>
-                                <textarea
-                                    value={productForm.description}
-                                    onChange={e => setProductForm({ ...productForm, description: e.target.value })}
-                                    rows={2}
-                                    style={{ width: '100%', padding: '0.75rem', borderRadius: 8, border: '1px solid #e2e8f0' }}
-                                />
-                            </div>
-
-                            <div style={{ marginBottom: '1rem' }}>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Ingredients (comma separated)</label>
-                                <input
-                                    type="text"
-                                    value={productForm.ingredients}
-                                    onChange={e => setProductForm({ ...productForm, ingredients: e.target.value })}
-                                    placeholder="Mozzarella, Tomato, Basil"
-                                    style={{ width: '100%', padding: '0.75rem', borderRadius: 8, border: '1px solid #e2e8f0' }}
-                                />
-                            </div>
-
-                            <div style={{ marginBottom: '1rem' }}>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Image URL</label>
-                                <input
-                                    type="url"
-                                    value={productForm.image_url}
-                                    onChange={e => setProductForm({ ...productForm, image_url: e.target.value })}
-                                    placeholder="https://..."
-                                    style={{ width: '100%', padding: '0.75rem', borderRadius: 8, border: '1px solid #e2e8f0' }}
-                                />
-                            </div>
-
-                            <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem' }}>
-                                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                                    <input
-                                        type="checkbox"
-                                        checked={productForm.is_active}
-                                        onChange={e => setProductForm({ ...productForm, is_active: e.target.checked })}
-                                    />
-                                    Active
-                                </label>
-                                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                                    <input
-                                        type="checkbox"
-                                        checked={productForm.coming_soon}
-                                        onChange={e => setProductForm({ ...productForm, coming_soon: e.target.checked })}
-                                    />
-                                    Coming Soon
-                                </label>
-                            </div>
-
-                            <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-                                {editingProduct ? 'Save Changes' : 'Create Product'}
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            )}
+                            </form>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

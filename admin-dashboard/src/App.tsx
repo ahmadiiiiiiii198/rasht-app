@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { LayoutDashboard, Pizza, Gift, Users, LogOut, ScanLine, Truck } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { LayoutDashboard, Pizza, Gift, Users, LogOut, ScanLine, Truck, ShoppingBag, TrendingUp } from 'lucide-react';
 import MenuManager from './MenuManager';
 import VerifyPage from './VerifyPage';
 import DispatchPage from './DispatchPage';
@@ -20,12 +20,40 @@ const SidebarItem = ({ id, icon, label, active, set }: any) => (
 
 const AdminApp = () => {
   const [activeTab, setActiveTab] = useState('dispatch');
+  const [stats, setStats] = useState({ orders: 0, products: 0, users: 0 });
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    const [ordersRes, productsRes] = await Promise.all([
+      supabase.from('orders').select('id', { count: 'exact', head: true }),
+      supabase.from('products').select('id', { count: 'exact', head: true })
+    ]);
+
+    setStats({
+      orders: ordersRes.count || 0,
+      products: productsRes.count || 0,
+      users: 0
+    });
+  };
 
   // Simple Logout
   const handleLogout = async () => {
-    // Just reload or clear session
     await supabase.auth.signOut();
     window.location.reload();
+  };
+
+  const getPageTitle = () => {
+    switch (activeTab) {
+      case 'menu': return 'Menu Management';
+      case 'dispatch': return 'Dispatch Console';
+      case 'verify': return 'Verify QR Codes';
+      case 'offers': return 'Offers & Promotions';
+      case 'users': return 'Loyalty Program';
+      default: return 'Dashboard Overview';
+    }
   };
 
   return (
@@ -33,8 +61,11 @@ const AdminApp = () => {
       {/* Sidebar */}
       <aside className="sidebar">
         <div className="sidebar-header">
-          <div className="brand-logo">T</div>
-          <span style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Admin Console</span>
+          <div className="brand-logo">R</div>
+          <div>
+            <span className="brand-name">Rasht</span>
+            <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>Admin Console</p>
+          </div>
         </div>
 
         <nav className="sidebar-nav">
@@ -55,41 +86,92 @@ const AdminApp = () => {
       {/* Main Content */}
       <main className="main-content">
         <header className="top-bar">
-          <h2 className="page-title">
-            {activeTab === 'menu' ? 'Menu Management' :
-              activeTab === 'dispatch' ? 'Dispatch Consegne' : activeTab}
-          </h2>
+          <h2 className="page-title">{getPageTitle()}</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <span style={{
+              padding: '0.5rem 1rem',
+              background: 'rgba(16, 185, 129, 0.15)',
+              color: 'var(--success)',
+              borderRadius: '8px',
+              fontSize: '0.875rem',
+              fontWeight: 600
+            }}>
+              ● Online
+            </span>
+          </div>
         </header>
 
         <div className="content-area">
           {activeTab === 'menu' && <MenuManager />}
           {activeTab === 'verify' && <VerifyPage />}
           {activeTab === 'dispatch' && <DispatchPage />}
+          {activeTab === 'offers' && <OffersManager />}
 
           {activeTab === 'dashboard' && (
-            <div className="grid-container">
-              <div className="stat-card">
-                <h3 style={{ margin: 0, color: '#64748b', fontSize: '0.875rem' }}>TOTAL ORDERS</h3>
-                <p className="stat-value">1,234</p>
+            <div>
+              <div className="grid-container" style={{ marginBottom: '2rem' }}>
+                <div className="stat-card">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <div style={{
+                      width: 48, height: 48, borderRadius: 12,
+                      background: 'rgba(201, 164, 92, 0.15)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}>
+                      <ShoppingBag size={24} color="var(--persian-gold)" />
+                    </div>
+                    <div>
+                      <p className="stat-label">TOTAL ORDERS</p>
+                      <p className="stat-value">{stats.orders.toLocaleString()}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="stat-card" style={{ borderLeftColor: 'var(--success)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <div style={{
+                      width: 48, height: 48, borderRadius: 12,
+                      background: 'rgba(16, 185, 129, 0.15)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}>
+                      <Pizza size={24} color="var(--success)" />
+                    </div>
+                    <div>
+                      <p className="stat-label">ACTIVE PRODUCTS</p>
+                      <p className="stat-value" style={{ color: 'var(--success)' }}>{stats.products}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="stat-card" style={{ borderLeftColor: 'var(--info)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <div style={{
+                      width: 48, height: 48, borderRadius: 12,
+                      background: 'rgba(59, 130, 246, 0.15)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}>
+                      <TrendingUp size={24} color="var(--info)" />
+                    </div>
+                    <div>
+                      <p className="stat-label">REVENUE TODAY</p>
+                      <p className="stat-value" style={{ color: 'var(--info)' }}>€0</p>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="stat-card" style={{ borderLeftColor: '#22c55e' }}>
-                <h3 style={{ margin: 0, color: '#64748b', fontSize: '0.875rem' }}>ACTIVE PRODUCTS</h3>
-                <p className="stat-value">45</p>
-              </div>
-              <div className="stat-card" style={{ borderLeftColor: '#a855f7' }}>
-                <h3 style={{ margin: 0, color: '#64748b', fontSize: '0.875rem' }}>LOYALTY USERS</h3>
-                <p className="stat-value">890</p>
+
+              <div className="card" style={{ padding: '2rem', textAlign: 'center' }}>
+                <LayoutDashboard size={48} color="var(--persian-gold)" style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
+                <h3 style={{ color: 'var(--text-primary)', marginBottom: '0.5rem' }}>Welcome to Rasht Admin</h3>
+                <p style={{ color: 'var(--text-muted)', maxWidth: 400, margin: '0 auto' }}>
+                  Use the sidebar to navigate between different management sections.
+                </p>
               </div>
             </div>
           )}
 
-          {activeTab === 'offers' && <OffersManager />}
-
           {activeTab === 'users' && (
-            <div className="card" style={{ padding: '3rem', textAlign: 'center', borderStyle: 'dashed' }}>
-              <Users size={48} color="#cbd5e1" style={{ margin: '0 auto 1rem' }} />
-              <h3>Loyalty System</h3>
-              <p style={{ color: '#64748b' }}>Manage user points (10 orders = Free Pizza logic).</p>
+            <div className="card" style={{ padding: '3rem', textAlign: 'center' }}>
+              <Users size={48} color="var(--persian-gold)" style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
+              <h3 style={{ color: 'var(--text-primary)' }}>Loyalty System</h3>
+              <p style={{ color: 'var(--text-muted)' }}>Manage user points (10 orders = Free Pizza logic).</p>
             </div>
           )}
         </div>
@@ -99,4 +181,3 @@ const AdminApp = () => {
 };
 
 export default AdminApp;
-
