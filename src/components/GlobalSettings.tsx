@@ -143,9 +143,9 @@ export const GlobalSettings: React.FC = () => {
                     onClick={toggleMute}
                     style={{
                         position: 'fixed',
-                        bottom: '24px',
-                        left: '24px',
-                        zIndex: 9999,
+                        top: '130px', /* Moved to top-right to avoid footer conflict */
+                        right: '16px',
+                        zIndex: 90, /* Lower than header but above bg */
                         width: '40px',
                         height: '40px',
                         borderRadius: '50%',
