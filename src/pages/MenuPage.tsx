@@ -14,19 +14,36 @@ const getPizzaImage = (product: Product): string => {
   const name = product.name.toUpperCase();
   const desc = (product.description || '').toLowerCase();
 
-  if (name.includes('LEBRON')) return '/pizza-pistachio-mortadella.png';
-  if (name.includes('JORDAN') || name.includes('KOBE') || name.includes('IVERSON') || name.includes('DUNCAN')) return '/pizza-meat-truffle.png';
-  if (name.includes('ROSE') || name.includes('GINOBILI') || name.includes('TATUM') || name.includes('DONCIC')) return '/pizza-white-potato.png';
-  if (name.includes('WESTBROOK') || name.includes('IRVING') || name.includes('CURRY') || name.includes('LILLARD') || name.includes('HARDEN')) return '/pizza-spicy-salami.png';
-  if (name.includes('DURANT') || name.includes('GARNETT') || name.includes('JOKIC') || name.includes('GASOL')) return '/pizza-veggie-grilled.png';
+  // 1. Pollo (Chicken)
+  if (name.includes('POLLO') || desc.includes('pollo')) {
+    return '/menu-images/pizza-pollo.png';
+  }
 
-  if (desc.includes('pistacchio') || desc.includes('mortadella')) return '/pizza-pistachio-mortadella.png';
-  if (desc.includes('tartufo') || desc.includes('salsiccia') || desc.includes('porcini')) return '/pizza-meat-truffle.png';
-  if (desc.includes('patate') || desc.includes('gorgonzola') || desc.includes('brie') || !desc.includes('pomodoro')) return '/pizza-white-potato.png';
-  if (desc.includes('spianata') || desc.includes('piccante') || desc.includes('salami') || desc.includes('pepperoni')) return '/pizza-spicy-salami.png';
-  if (desc.includes('zucchine') || desc.includes('melanzane') || desc.includes('peperoni') || desc.includes('verdure')) return '/pizza-veggie-grilled.png';
+  // 2. Sumac / Carne (Meat)
+  if (name.includes('SUMAC') || desc.includes('sumac')) {
+    return '/menu-images/pizza-carne-sumac.png';
+  }
+  if (name.includes('CARNE') || desc.includes('carne') || desc.includes('meat')) {
+    return '/menu-images/pizza-carne-sumac.png'; // Use Sumac pizza as generic meat pizza
+  }
 
-  return '/pizza-margherita-hero.png';
+  // 3. Wurstel
+  if (name.includes('WURSTEL') || name.includes('WÜRSTEL') || desc.includes('wurstel')) {
+    return '/menu-images/pizza-wurstel.png';
+  }
+
+  // 4. Peperoni
+  if (name.includes('PEPERONI') || name.includes('PEPPERONI') || desc.includes('peperoni')) {
+    return '/menu-images/pizza-peperoni.png';
+  }
+
+  // 5. Speciale / Default Supreme Look
+  if (name.includes('SPECIALE') || name.includes('WAGON') || desc.includes('speciale')) {
+    return '/menu-images/pizza-speciale.png';
+  }
+
+  // Default Fallback (Speciale looks best/richest)
+  return '/menu-images/pizza-speciale.png';
 };
 
 // --- CACHE ---
