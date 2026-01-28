@@ -121,17 +121,18 @@ const MenuPage: React.FC<MenuPageProps> = ({ onNavigate }) => {
       <div style={{
         position: 'absolute', top: 0, left: 0, right: 0, zIndex: 100,
         background: 'linear-gradient(180deg, rgba(5,26,20,0.95) 0%, rgba(5,26,20,0) 100%)',
-        padding: '60px 16px 20px 80px' // Left padding for generic back button area
+        padding: '20px 16px 20px 80px', // REDUCED TOP PADDING from 60px to 20px
+        paddingTop: 'max(20px, env(safe-area-inset-top))', // Respect safe area
       }}>
         {/* Search */}
-        <div style={{ position: 'relative', marginBottom: '12px' }}>
+        <div style={{ position: 'relative', marginBottom: '8px' }}>
           <Search size={16} className="text-gold" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
           <input
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder="Search pizza..."
             className="rashti-input"
-            style={{ height: '40px', fontSize: '14px', background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)' }}
+            style={{ height: '36px', fontSize: '13px', background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)' }}
           />
         </div>
 
@@ -142,7 +143,7 @@ const MenuPage: React.FC<MenuPageProps> = ({ onNavigate }) => {
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
               className={`rashti-chip ${activeCategory === cat.id ? 'active' : ''}`}
-              style={{ padding: '6px 14px', fontSize: '12px', flexShrink: 0, border: activeCategory === cat.id ? 'none' : '1px solid rgba(255,255,255,0.2)' }}
+              style={{ padding: '4px 12px', fontSize: '11px', flexShrink: 0, border: activeCategory === cat.id ? 'none' : '1px solid rgba(255,255,255,0.2)' }}
             >
               {(cat as any).coming_soon && <Clock size={10} style={{ marginRight: 4 }} />}
               {cat.name}
@@ -198,26 +199,27 @@ const MenuPage: React.FC<MenuPageProps> = ({ onNavigate }) => {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  paddingTop: '80px', // Clear header space
+                  paddingTop: '100px', // INCREASED PADDING to push image down away from new header pos
                   paddingBottom: '20px'
                 }}>
-                  <motion.img
-                    initial={{ scale: 0.8, opacity: 0, rotate: -10 }}
-                    whileInView={{ scale: 1, opacity: 1, rotate: 0 }}
-                    viewport={{ amount: 0.5 }}
-                    transition={{ type: 'spring', damping: 20, stiffness: 100 }}
-                    src={getPizzaImage(product)}
-                    alt={product.name}
-                    style={{
-                      width: '85%',
-                      maxWidth: '320px',
-                      height: 'auto',
-                      maxHeight: '100%',
-                      objectFit: 'contain',
-                      filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.5))',
-                      zIndex: 10
-                    }}
-                  />
+                  <AnimatePresence mode="wait">
+                    <motion.img
+                      key={product.id}
+                      src={getPizzaImage(product)}
+                      initial={{ opacity: 0, y: 50 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -50 }}
+                      transition={{ duration: 0.5 }}
+                      style={{
+                        width: '80%',
+                        maxWidth: '400px',
+                        height: 'auto',
+                        objectFit: 'contain',
+                        filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.5))',
+                        zIndex: 10
+                      }}
+                    />
+                  </AnimatePresence>
 
                   {/* Background Radial Glow */}
                   <div style={{
