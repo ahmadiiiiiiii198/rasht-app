@@ -198,7 +198,7 @@ const MenuPage: React.FC<MenuPageProps> = ({ onNavigate }) => {
   const MenuSkeleton = () => (
     <>
       {[1, 2, 3].map((i) => (
-        <div key={i} style={{ height: '55vh', padding: '20px', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+        <div key={i} style={{ height: '55vh', padding: '10px 20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className="rashti-card" style={{ width: '100%', height: '300px', opacity: 0.5 }} />
         </div>
       ))}
@@ -288,7 +288,7 @@ const MenuPage: React.FC<MenuPageProps> = ({ onNavigate }) => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                paddingTop: '160px', // Push down below simpler header
+                paddingTop: '110px', // Adjusted to reduce empty space at top
               }}
             >
               <img
@@ -319,7 +319,7 @@ const MenuPage: React.FC<MenuPageProps> = ({ onNavigate }) => {
         overflowY: 'auto',
         scrollSnapType: 'y mandatory',
         height: '100%',
-        marginTop: '60vh', // Push list down to reveal food
+        marginTop: '50vh', // List starts higher to reduce gap
         position: 'relative',
         zIndex: 10,
         background: 'linear-gradient(180deg, rgba(8, 41, 32, 0.95) 0%, #051a14 100%)',
@@ -360,7 +360,7 @@ const MenuPage: React.FC<MenuPageProps> = ({ onNavigate }) => {
               ref={(el) => { productRefs.current[product.id] = el; }}
               data-id={product.id}
               style={{
-                height: '45vh',
+                height: '55vh', // Increased height to prevent cutoff
                 scrollSnapAlign: 'start',
                 display: 'flex',
                 alignItems: 'center',
@@ -381,7 +381,7 @@ const MenuPage: React.FC<MenuPageProps> = ({ onNavigate }) => {
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
-                  padding: '24px',
+                  padding: '20px', // Reduced padding
                   opacity: isComingSoon ? 0.8 : 1,
                   background: 'linear-gradient(145deg, rgba(8, 41, 32, 0.6) 0%, rgba(5, 26, 20, 0.8) 100%)',
                   border: '1px solid rgba(255, 255, 255, 0.05)',
@@ -409,7 +409,7 @@ const MenuPage: React.FC<MenuPageProps> = ({ onNavigate }) => {
                 </div>
 
                 {/* Content: Title, Jersey, Desc */}
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '16px' }}>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '10px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                     {/* Jersey Icon - Slightly Larger */}
                     <div style={{ width: '50px', height: '60px', flexShrink: 0, filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))' }}>
