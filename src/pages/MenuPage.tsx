@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, ShoppingCart, Star, Search, Clock, ChevronDown } from 'lucide-react';
+import { Plus, ShoppingCart, Star, Search, Clock, ChevronDown, Flower2 } from 'lucide-react';
 import { getProducts, getCategories, Product, Category } from '../lib/database';
-import JerseyImage from '../components/JerseyImage';
 
 // --- TYPES ---
 interface MenuPageProps {
@@ -285,8 +284,8 @@ const MenuPage: React.FC<MenuPageProps> = ({ onNavigate }) => {
                   {/* Middle: Content */}
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '8px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{ width: '40px', height: '48px', flexShrink: 0 }}>
-                        <JerseyImage src={product.image_url?.startsWith('jersey') ? product.image_url : ''} text={product.name} alt="Kit" forceGenerator />
+                      <div style={{ width: '40px', height: '40px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--persian-gold)', borderRadius: '50%', background: 'rgba(201,164,92,0.1)' }}>
+                        <Flower2 size={24} color="var(--persian-gold)" />
                       </div>
                       <h2 style={{ fontFamily: 'Cinzel', fontSize: '24px', lineHeight: '1.1', color: 'var(--persian-gold)', margin: 0, textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
                         {product.name}
