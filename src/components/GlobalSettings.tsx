@@ -137,57 +137,32 @@ export const GlobalSettings: React.FC = () => {
                 </audio>
             )}
 
-            {/* Floating Music Control */}
+            {/* Floating Music Control - Simplified Speaker Icon Only */}
             {settings.background_music_url && (
-                <div style={{
-                    position: 'fixed',
-                    bottom: '20px',
-                    right: '20px',
-                    zIndex: 9999,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    padding: '10px',
-                    background: 'rgba(13, 61, 46, 0.8)',
-                    backdropFilter: 'blur(10px)',
-                    borderRadius: '50px',
-                    border: '1px solid var(--persian-gold)',
-                    boxShadow: '0 4px 15px rgba(0,0,0,0.5)',
-                    color: 'var(--persian-gold)',
-                    transition: 'all 0.3s ease'
-                }}>
-                    <button
-                        onClick={togglePlay}
-                        style={{
-                            background: 'none',
-                            border: 'none',
-                            color: 'inherit',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                        }}
-                    >
-                        {isPlaying ? <Pause size={20} /> : <Play size={20} />}
-                    </button>
-
-                    <div style={{ width: '1px', height: '20px', background: 'rgba(201, 164, 92, 0.5)' }}></div>
-
-                    <button
-                        onClick={toggleMute}
-                        style={{
-                            background: 'none',
-                            border: 'none',
-                            color: 'inherit',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                        }}
-                    >
-                        {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
-                    </button>
-                </div>
+                <button
+                    onClick={toggleMute}
+                    style={{
+                        position: 'fixed',
+                        bottom: '24px',
+                        left: '24px',
+                        zIndex: 9999,
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '50%',
+                        background: 'rgba(13, 61, 46, 0.6)',
+                        backdropFilter: 'blur(8px)',
+                        border: '1px solid rgba(201, 164, 92, 0.4)',
+                        color: 'var(--persian-gold)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease'
+                    }}
+                >
+                    {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+                </button>
             )}
         </>
     );
