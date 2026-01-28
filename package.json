@@ -1,6 +1,6 @@
 {
-  "name": "efes-customer-app",
-  "version": "0.1.0",
+  "name": "rasht-app",
+  "version": "1.0.0",
   "private": true,
   "dependencies": {
     "@capacitor/android": "^7.4.4",

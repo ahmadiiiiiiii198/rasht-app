@@ -45,6 +45,7 @@ export interface Product {
   cooldown_hours: number | null;
   uses_limit_enabled: boolean | null;
   cooldown_enabled: boolean | null;
+  coming_soon: boolean | null;
 }
 
 export interface Category {
@@ -60,6 +61,7 @@ export interface Category {
   updated_at: string;
   // NEW FIELD found in real database
   extras_enabled: boolean | null;
+  coming_soon: boolean | null;
 }
 
 export interface Order {

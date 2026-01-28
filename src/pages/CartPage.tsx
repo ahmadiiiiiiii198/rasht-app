@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Minus, ShoppingCart, Trash2, Loader2, X, AlertCircle, Clock } from 'lucide-react';
+import { Plus, Minus, ShoppingCart, Trash2, Loader2, X, AlertCircle, Clock, User, Mail, Phone, MapPin, Bell, Ticket, CreditCard, Banknote } from 'lucide-react';
 import { createOrder, CreateOrderData } from '../lib/database';
 import { useCart } from '../hooks/useCart';
 import JerseyImage from '../components/JerseyImage';
@@ -446,46 +446,51 @@ const CartPage: React.FC = () => {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             className="rashti-card-light"
-            style={{ borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '600px', margin: '0 auto' }}
+            style={{ borderRadius: '24px', padding: '32px', width: '100%', maxWidth: '600px', margin: '0 auto', boxShadow: '0 20px 40px rgba(0,0,0,0.05)' }}
           >
             {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', borderBottom: '1px solid #f0f0f0', paddingBottom: '16px' }}>
               <div>
-                <p style={{ margin: 0, fontSize: '12px', color: '#c9a45c', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 'bold' }}>Passo 2 di 2</p>
-                <h2 className="rashti-title" style={{ margin: '6px 0 0 0', fontSize: '24px', color: '#0d3d2e' }}>Checkout</h2>
+                <p style={{ margin: 0, fontSize: '11px', color: '#c9a45c', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 'bold' }}>Passo 2 di 2</p>
+                <h2 className="rashti-title" style={{ margin: '4px 0 0 0', fontSize: '26px', color: '#0d3d2e' }}>Checkout</h2>
               </div>
-              <motion.button whileHover={{ scale: 1.1 }} onClick={() => setShowCheckout(false)} style={{ border: 'none', background: '#f5f5f5', width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                <X size={18} color="#333" />
+              <motion.button whileHover={{ scale: 1.1 }} onClick={() => setShowCheckout(false)} style={{ border: 'none', background: '#f5f5f5', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                <X size={20} color="#333" />
               </motion.button>
             </div>
 
             {/* Validation alert */}
             {(!customerInfo.name || !customerInfo.email || !customerInfo.phone || (customerInfo.fulfillmentType === 'delivery' && !customerInfo.address)) && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', borderRadius: '10px', background: '#fff7ed', color: '#c2410c', marginBottom: '20px', fontSize: '13px' }}>
-                <AlertCircle size={18} />
-                <span>Compila i campi obbligatori.</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px', borderRadius: '12px', background: '#fff7ed', color: '#c2410c', marginBottom: '32px', fontSize: '14px', border: '1px solid #ffedd5' }}>
+                <AlertCircle size={20} />
+                <span style={{ fontWeight: 500 }}>Per favore compila tutti i campi obbligatori contrassegnati.</span>
               </div>
             )}
 
             {/* Customer info */}
-            <div style={{ marginBottom: '24px' }}>
-              <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', fontWeight: 600, color: '#0d3d2e', fontFamily: 'Cinzel' }}>Tuoi Dati</h3>
-              <div style={{ display: 'grid', gap: '16px' }}>
-                <div>
-                  <input type="text" value={customerInfo.name} onChange={e => setCustomerInfo(p => ({ ...p, name: e.target.value }))} placeholder="Nome Completo *" className="rashti-input" style={{ background: 'white', borderColor: '#e2e8f0', color: '#333' }} />
+            <div style={{ marginBottom: '32px' }}>
+              <h3 style={{ margin: '0 0 20px 0', fontSize: '18px', fontWeight: 700, color: '#0d3d2e', fontFamily: 'Cinzel', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <User size={18} /> Tuoi Dati
+              </h3>
+              <div style={{ display: 'grid', gap: '20px' }}>
+                <div style={{ position: 'relative' }}>
+                  <User size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                  <input type="text" value={customerInfo.name} onChange={e => setCustomerInfo(p => ({ ...p, name: e.target.value }))} placeholder="Nome Completo *" className="rashti-input" style={{ paddingLeft: '48px', background: '#f8fafc', borderColor: '#e2e8f0', color: '#333' }} />
                 </div>
-                <div>
-                  <input type="email" value={customerInfo.email} onChange={e => setCustomerInfo(p => ({ ...p, email: e.target.value }))} placeholder="Email *" className="rashti-input" style={{ background: 'white', borderColor: '#e2e8f0', color: '#333' }} />
+                <div style={{ position: 'relative' }}>
+                  <Mail size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                  <input type="email" value={customerInfo.email} onChange={e => setCustomerInfo(p => ({ ...p, email: e.target.value }))} placeholder="Email *" className="rashti-input" style={{ paddingLeft: '48px', background: '#f8fafc', borderColor: '#e2e8f0', color: '#333' }} />
                 </div>
-                <div>
-                  <input type="tel" value={customerInfo.phone} onChange={e => setCustomerInfo(p => ({ ...p, phone: e.target.value }))} placeholder="Telefono *" className="rashti-input" style={{ background: 'white', borderColor: '#e2e8f0', color: '#333' }} />
+                <div style={{ position: 'relative' }}>
+                  <Phone size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                  <input type="tel" value={customerInfo.phone} onChange={e => setCustomerInfo(p => ({ ...p, phone: e.target.value }))} placeholder="Telefono *" className="rashti-input" style={{ paddingLeft: '48px', background: '#f8fafc', borderColor: '#e2e8f0', color: '#333' }} />
                 </div>
               </div>
             </div>
 
             {/* Fulfillment Type Selection (Tabs) */}
-            <div style={{ marginBottom: '24px' }}>
-              <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', fontWeight: 600, color: '#0d3d2e', fontFamily: 'Cinzel' }}>Modalità</h3>
+            <div style={{ marginBottom: '32px' }}>
+              <h3 style={{ margin: '0 0 20px 0', fontSize: '18px', fontWeight: 700, color: '#0d3d2e', fontFamily: 'Cinzel' }}>Modalità</h3>
               {(() => {
                 const hasDeliveryOnlyItems = cart.items.some(item => item.deliveryOnly);
                 if (hasDeliveryOnlyItems) {
@@ -494,19 +499,19 @@ const CartPage: React.FC = () => {
                       <div style={{ padding: '16px', borderRadius: '12px', textAlign: 'center', border: '2px solid #ea580c', background: '#fff7ed', fontWeight: 600, color: '#ea580c' }}>
                         🛵 Consegna a Domicilio
                       </div>
-                      <p style={{ fontSize: '12px', color: '#64748b', marginTop: '8px', fontStyle: 'italic' }}>Articoli solo per consegna.</p>
+                      <p style={{ fontSize: '12px', color: '#64748b', marginTop: '8px', fontStyle: 'italic' }}>Articoli nel carrello disponibili solo per consegna.</p>
                     </>
                   );
                 }
                 return (
-                  <div style={{ display: 'flex', gap: '12px' }}>
+                  <div style={{ display: 'flex', gap: '16px', background: '#f1f5f9', padding: '6px', borderRadius: '16px' }}>
                     <div
                       onClick={() => setCustomerInfo(p => ({ ...p, fulfillmentType: 'delivery' }))}
                       style={{
-                        flex: 1, padding: '12px', borderRadius: '12px', textAlign: 'center', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s',
-                        border: customerInfo.fulfillmentType === 'delivery' ? '2px solid #c9a45c' : '1px solid #e2e8f0',
-                        background: customerInfo.fulfillmentType === 'delivery' ? '#fffef0' : 'white',
-                        color: customerInfo.fulfillmentType === 'delivery' ? '#0d3d2e' : '#64748b'
+                        flex: 1, padding: '14px', borderRadius: '12px', textAlign: 'center', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s',
+                        background: customerInfo.fulfillmentType === 'delivery' ? 'white' : 'transparent',
+                        color: customerInfo.fulfillmentType === 'delivery' ? '#0d3d2e' : '#64748b',
+                        boxShadow: customerInfo.fulfillmentType === 'delivery' ? '0 4px 6px rgba(0,0,0,0.05)' : 'none'
                       }}
                     >
                       🛵 Domicilio
@@ -514,10 +519,10 @@ const CartPage: React.FC = () => {
                     <div
                       onClick={() => setCustomerInfo(p => ({ ...p, fulfillmentType: 'pickup' }))}
                       style={{
-                        flex: 1, padding: '12px', borderRadius: '12px', textAlign: 'center', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s',
-                        border: customerInfo.fulfillmentType === 'pickup' ? '2px solid #c9a45c' : '1px solid #e2e8f0',
-                        background: customerInfo.fulfillmentType === 'pickup' ? '#fffef0' : 'white',
-                        color: customerInfo.fulfillmentType === 'pickup' ? '#0d3d2e' : '#64748b'
+                        flex: 1, padding: '14px', borderRadius: '12px', textAlign: 'center', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s',
+                        background: customerInfo.fulfillmentType === 'pickup' ? 'white' : 'transparent',
+                        color: customerInfo.fulfillmentType === 'pickup' ? '#0d3d2e' : '#64748b',
+                        boxShadow: customerInfo.fulfillmentType === 'pickup' ? '0 4px 6px rgba(0,0,0,0.05)' : 'none'
                       }}
                     >
                       🛍️ Ritiro
@@ -527,30 +532,63 @@ const CartPage: React.FC = () => {
               })()}
             </div>
 
+            {/* Address & citofono (only for delivery) */}
+            {customerInfo.fulfillmentType === 'delivery' && (
+              <div style={{ marginBottom: '32px' }}>
+                <h3 style={{ margin: '0 0 20px 0', fontSize: '18px', fontWeight: 700, color: '#0d3d2e', fontFamily: 'Cinzel', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <MapPin size={18} /> Indirizzo
+                </h3>
+                <div style={{ display: 'grid', gap: '20px' }}>
+                  <div style={{ position: 'relative' }}>
+                    <MapPin size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                    <input type="text" value={customerInfo.address} onChange={e => setCustomerInfo(p => ({ ...p, address: e.target.value }))} placeholder="Via, Numero, Città *" className="rashti-input" style={{ paddingLeft: '48px', background: '#f8fafc', borderColor: '#e2e8f0', color: '#333' }} />
+                    {isValidatingAddress && <div style={{ fontSize: '12px', color: '#c9a45c', marginTop: '8px', paddingLeft: '12px' }}>Verifica indirizzo in corso...</div>}
+                    {addressValidation?.error && <div style={{ fontSize: '12px', color: '#ef4444', marginTop: '8px', paddingLeft: '12px' }}>⚠️ {addressValidation.error}</div>}
+                  </div>
+                  <div style={{ position: 'relative' }}>
+                    <Bell size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                    <input type="text" value={customerInfo.citofonoNome} onChange={e => setCustomerInfo(p => ({ ...p, citofonoNome: e.target.value }))} placeholder="Nome sul Citofono" className="rashti-input" style={{ paddingLeft: '48px', background: '#f8fafc', borderColor: '#e2e8f0', color: '#333' }} />
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Timing Selection */}
-            <div style={{ marginBottom: '24px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ marginBottom: '32px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div
                   onClick={() => setCustomerInfo(p => ({ ...p, timing: 'asap' }))}
                   style={{
-                    padding: '14px', borderRadius: '12px', cursor: 'pointer',
-                    border: customerInfo.timing === 'asap' ? '2px solid #c9a45c' : '1px solid #e2e8f0',
-                    background: customerInfo.timing === 'asap' ? '#fffef0' : 'white',
+                    padding: '16px', borderRadius: '16px', cursor: 'pointer', border: '1px solid',
+                    borderColor: customerInfo.timing === 'asap' ? '#c9a45c' : '#e2e8f0',
+                    background: customerInfo.timing === 'asap' ? '#fffef0' : '#f8fafc',
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between'
                   }}
                 >
-                  <div style={{ fontWeight: 600, color: '#0d3d2e', marginBottom: '4px' }}>🚀 Appena Possibile</div>
-                  <div style={{ fontSize: '13px', color: '#64748b' }}>~30 minuti</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ background: '#e0f2fe', padding: '8px', borderRadius: '8px' }}><Clock size={20} color="#0284c7" /></div>
+                    <div>
+                      <div style={{ fontWeight: 600, color: '#0d3d2e', marginBottom: '2px' }}>Appena Possibile</div>
+                      <div style={{ fontSize: '13px', color: '#64748b' }}>Tempo stimato: ~30-40 min</div>
+                    </div>
+                  </div>
+                  {customerInfo.timing === 'asap' && <div style={{ width: '12px', height: '12px', background: '#c9a45c', borderRadius: '50%' }} />}
                 </div>
 
                 <div
                   onClick={() => setCustomerInfo(p => ({ ...p, timing: 'scheduled' }))}
                   style={{
-                    padding: '14px', borderRadius: '12px', cursor: 'pointer',
-                    border: customerInfo.timing === 'scheduled' ? '2px solid #c9a45c' : '1px solid #e2e8f0',
-                    background: customerInfo.timing === 'scheduled' ? '#fffef0' : 'white',
+                    padding: '16px', borderRadius: '16px', cursor: 'pointer', border: '1px solid',
+                    borderColor: customerInfo.timing === 'scheduled' ? '#c9a45c' : '#e2e8f0',
+                    background: customerInfo.timing === 'scheduled' ? '#fffef0' : '#f8fafc',
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between'
                   }}
                 >
-                  <div style={{ fontWeight: 600, color: '#0d3d2e', marginBottom: '4px' }}>🕐 Orario Specifico</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ background: '#f0fdf4', padding: '8px', borderRadius: '8px' }}><Clock size={20} color="#16a34a" /></div>
+                    <div style={{ fontWeight: 600, color: '#0d3d2e' }}>Programma Orario</div>
+                  </div>
+                  {customerInfo.timing === 'scheduled' && <div style={{ width: '12px', height: '12px', background: '#c9a45c', borderRadius: '50%' }} />}
                 </div>
               </div>
 
@@ -567,63 +605,79 @@ const CartPage: React.FC = () => {
               )}
             </div>
 
-            {/* Address & citofono (only for delivery) */}
-            {customerInfo.fulfillmentType === 'delivery' && (
-              <div style={{ marginBottom: '24px' }}>
-                <div style={{ marginBottom: '16px' }}>
-                  <input type="text" value={customerInfo.address} onChange={e => setCustomerInfo(p => ({ ...p, address: e.target.value }))} placeholder="Indirizzo (Via, Numero, Città) *" className="rashti-input" style={{ background: 'white', borderColor: '#e2e8f0', color: '#333' }} />
-                  {isValidatingAddress && <div style={{ fontSize: '12px', color: '#c9a45c', marginTop: '5px' }}>Validazione in corso...</div>}
-                </div>
-                <div>
-                  <input type="text" value={customerInfo.citofonoNome} onChange={e => setCustomerInfo(p => ({ ...p, citofonoNome: e.target.value }))} placeholder="Nome Citofono" className="rashti-input" style={{ background: 'white', borderColor: '#e2e8f0', color: '#333' }} />
-                </div>
-              </div>
-            )}
-
             {/* Payment info */}
-            <div style={{ marginBottom: '24px' }}>
-              <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', fontWeight: 600, color: '#0d3d2e', fontFamily: 'Cinzel' }}>Pagamento</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ marginBottom: '32px' }}>
+              <h3 style={{ margin: '0 0 20px 0', fontSize: '18px', fontWeight: 700, color: '#0d3d2e', fontFamily: 'Cinzel', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                Pagamento
+              </h3>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <div
                   onClick={() => setCustomerInfo(p => ({ ...p, paymentMethod: 'cash' }))}
                   style={{
-                    padding: '14px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px',
+                    padding: '20px', borderRadius: '16px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', textAlign: 'center',
                     border: customerInfo.paymentMethod === 'cash' ? '2px solid #c9a45c' : '1px solid #e2e8f0',
                     background: customerInfo.paymentMethod === 'cash' ? '#fffef0' : 'white',
                   }}
                 >
-                  <div style={{ fontSize: '20px' }}>💵</div>
-                  <div>
-                    <div style={{ fontWeight: 600, color: '#0d3d2e' }}>Contanti</div>
-                  </div>
+                  <Banknote size={32} color={customerInfo.paymentMethod === 'cash' ? '#c9a45c' : '#94a3b8'} />
+                  <div style={{ fontWeight: 600, color: '#0d3d2e' }}>Contanti</div>
                 </div>
 
                 <div
                   onClick={() => setCustomerInfo(p => ({ ...p, paymentMethod: 'pos' }))}
                   style={{
-                    padding: '14px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px',
+                    padding: '20px', borderRadius: '16px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', textAlign: 'center',
                     border: customerInfo.paymentMethod === 'pos' ? '2px solid #c9a45c' : '1px solid #e2e8f0',
                     background: customerInfo.paymentMethod === 'pos' ? '#fffef0' : 'white',
                   }}
                 >
-                  <div style={{ fontSize: '20px' }}>💳</div>
-                  <div>
-                    <div style={{ fontWeight: 600, color: '#0d3d2e' }}>POS (Carta)</div>
-                  </div>
+                  <CreditCard size={32} color={customerInfo.paymentMethod === 'pos' ? '#c9a45c' : '#94a3b8'} />
+                  <div style={{ fontWeight: 600, color: '#0d3d2e' }}>POS (Carta)</div>
                 </div>
               </div>
             </div>
 
             {/* Promo code */}
-            <div style={{ marginBottom: '20px' }}>
-              <input type="text" value={promoCode} onChange={e => setPromoCode(e.target.value.toUpperCase())} placeholder="Codice Promo" className="rashti-input" style={{ flex: 1, background: 'white', borderColor: '#e2e8f0', color: '#333', textTransform: 'uppercase' }} />
+            <div style={{ marginBottom: '32px' }}>
+              <div style={{ position: 'relative' }}>
+                <Ticket size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                <input type="text" value={promoCode} onChange={e => setPromoCode(e.target.value.toUpperCase())} placeholder="Hai un codice promo?" className="rashti-input" style={{ paddingLeft: '48px', background: '#f8fafc', borderColor: '#e2e8f0', color: '#333', textTransform: 'uppercase' }} />
+              </div>
+            </div>
+
+            {/* Final Summary Sticky */}
+            <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '16px', marginBottom: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '14px', color: '#64748b' }}>
+                <span>Subtotale</span>
+                <span>€{cart.getTotalPrice().toFixed(2)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '14px', color: '#64748b' }}>
+                <span>Consegna</span>
+                <span>€{deliveryFee.toFixed(2)}</span>
+              </div>
+              {customerInfo.paymentMethod === 'pos' && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '14px', color: '#64748b' }}>
+                  <span>Commissione POS</span>
+                  <span>€{POS_FEE.toFixed(2)}</span>
+                </div>
+              )}
+              <div style={{ borderTop: '1px solid #e2e8f0', marginTop: '12px', paddingTop: '12px', display: 'flex', justifyContent: 'space-between', fontSize: '20px', fontWeight: 'bold', color: '#0d3d2e', fontFamily: 'Cinzel' }}>
+                <span>Totale</span>
+                <span>€{(cart.getTotalPrice() + deliveryFee + (customerInfo.paymentMethod === 'pos' ? POS_FEE : 0)).toFixed(2)}</span>
+              </div>
             </div>
 
             {/* Action buttons */}
             <div style={{ display: 'flex', gap: '10px', flexDirection: 'column' }}>
-              <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleCheckout} disabled={isSubmitting} className="rashti-btn-primary" style={{ width: '100%', height: '54px', fontSize: '16px' }}>
-                {isSubmitting ? <Loader2 className="animate-spin" size={16} /> : 'CONFERMA ORDINE'}
+              <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleCheckout} disabled={isSubmitting} className="rashti-btn-primary" style={{ width: '100%', height: '56px', fontSize: '16px', borderRadius: '14px', background: 'linear-gradient(135deg, #0d3d2e 0%, #1a5c48 100%)', boxShadow: '0 8px 16px rgba(13, 61, 46, 0.3)' }}>
+                {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : <span style={{ letterSpacing: '1px', fontWeight: 800 }}>CONFERMA ORDINE</span>}
               </motion.button>
+              <button
+                onClick={() => setShowCheckout(false)}
+                style={{ background: 'transparent', border: 'none', color: '#64748b', fontSize: '14px', padding: '12px', cursor: 'pointer', textDecoration: 'underline' }}
+              >
+                Torna al carrello
+              </button>
             </div>
           </motion.div>
         )}

@@ -196,14 +196,17 @@ const ProfilePage: React.FC = () => {
           animate={{ opacity: 1 }}
           className="rashti-card-light"
           style={{
-            padding: '40px 20px',
+            padding: '40px 30px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             textAlign: 'center',
-            maxWidth: '350px',
+            maxWidth: '380px',
             width: '100%',
-            borderRadius: '20px'
+            borderRadius: '24px',
+            background: 'white',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.1)',
+            border: '1px solid rgba(255,255,255,0.5)'
           }}
         >
           <div style={{ fontSize: '60px', marginBottom: '20px' }}>👤</div>
@@ -318,33 +321,34 @@ const ProfilePage: React.FC = () => {
           </p>
 
           <div style={{
-            display: 'flex',
-            justifyContent: 'space-around',
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr 1fr',
+            gap: '10px',
             marginTop: '25px',
             padding: '20px 0',
             borderTop: '1px solid rgba(201, 164, 92, 0.3)'
           }}>
-            <div style={{ textAlign: 'center' }}>
-              <div className="font-cinzel" style={{ fontSize: '24px', fontWeight: 'bold' }}>
+            <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div className="font-cinzel" style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '4px' }}>
                 {stats.totalOrders}
               </div>
-              <div style={{ fontSize: '12px', opacity: 0.8, textTransform: 'uppercase' }}>
+              <div style={{ fontSize: '11px', opacity: 0.8, textTransform: 'uppercase', letterSpacing: '1px' }}>
                 Ordini
               </div>
             </div>
-            <div style={{ textAlign: 'center' }}>
-              <div className="font-cinzel" style={{ fontSize: '24px', fontWeight: 'bold' }}>
+            <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', borderLeft: '1px solid rgba(255,255,255,0.1)', borderRight: '1px solid rgba(255,255,255,0.1)' }}>
+              <div className="font-cinzel" style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '4px', color: '#ffd700' }}>
                 {stats.loyaltyPoints}
               </div>
-              <div style={{ fontSize: '12px', opacity: 0.8, textTransform: 'uppercase' }}>
+              <div style={{ fontSize: '11px', opacity: 0.8, textTransform: 'uppercase', letterSpacing: '1px' }}>
                 Punti
               </div>
             </div>
-            <div style={{ textAlign: 'center' }}>
-              <div className="font-cinzel" style={{ fontSize: '24px', fontWeight: 'bold' }}>
+            <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div className="font-cinzel" style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '4px' }}>
                 {profile.created_at ? new Date(profile.created_at).getFullYear() : new Date().getFullYear()}
               </div>
-              <div style={{ fontSize: '12px', opacity: 0.8, textTransform: 'uppercase' }}>
+              <div style={{ fontSize: '11px', opacity: 0.8, textTransform: 'uppercase', letterSpacing: '1px' }}>
                 Membro
               </div>
             </div>

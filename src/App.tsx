@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Phone,
@@ -15,6 +15,7 @@ import NotificationListener from './components/NotificationListener';
 import BusinessHoursProvider from './contexts/BusinessHoursContext';
 import { AuthProvider } from './contexts/AuthContext';
 import FCMService from './services/FCMService';
+import SplashScreen from './components/SplashScreen';
 
 
 import { GlobalSettings } from './components/GlobalSettings';
@@ -26,6 +27,7 @@ import ProfilePage from './pages/ProfilePage';
 import OffersPage from './pages/OffersPage';
 import LoyaltyPage from './pages/LoyaltyPage';
 import BasketballLogo from './components/BasketballLogo';
+
 
 
 interface NavButton {
@@ -97,9 +99,10 @@ const navButtons: NavButton[] = [
   }
 ];
 
-const buttonBaseSize = 80;
+const buttonBaseSize = 100;
 
 function App() {
+  const [isLoading, setIsLoading] = useState(true);
   const [activeButton, setActiveButton] = useState<string | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [collapsedSize, setCollapsedSize] = useState(200);
@@ -136,7 +139,7 @@ function App() {
       setIsMobile(mobile);
 
       // Button sizes
-      const buttonSize = width <= 380 ? 55 : width <= 480 ? 65 : mobile ? 75 : 90;
+      const buttonSize = width <= 380 ? 75 : width <= 480 ? 85 : mobile ? 100 : 120;
       setNavButtonSize(buttonSize);
 
       // Margins and Gaps
@@ -213,6 +216,19 @@ function App() {
 
   const showRootNav = !isExpanded;
 
+  // Loading effect - show splash for minimum 2s to let assets load
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Show splash screen while loading
+  if (isLoading) {
+    return <SplashScreen />;
+  }
+
   return (
     <BusinessHoursProvider>
       <GlobalSettings />
@@ -286,7 +302,9 @@ function App() {
                   ) : activeButton === 'loyalty' ? (
                     <LoyaltyPage onNavigate={handleNavigate} />
                   ) : (
-                    <ActiveComponent />
+                    <Suspense fallback={<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#c9a45c' }}>Caricamento...</div>}>
+                      <ActiveComponent />
+                    </Suspense>
                   )}
                 </motion.div>
               )}

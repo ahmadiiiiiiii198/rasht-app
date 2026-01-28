@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, ShoppingCart, Star, Search } from 'lucide-react';
+import { Plus, ShoppingCart, Star, Search, Clock, AlertCircle } from 'lucide-react';
 import { getProducts, getCategories, Product, Category } from '../lib/database';
 import JerseyImage from '../components/JerseyImage';
 
@@ -249,10 +249,13 @@ const MenuPage: React.FC<MenuPageProps> = ({ onNavigate }) => {
             categories.map((cat) => (
               <button
                 key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
-                className={`rashti-chip ${activeCategory === cat.id ? 'active' : ''}`}
+                onClick={() => setActiveCategory(cat.id)} // Allow selection even if coming soon
+                className={`rashti-chip ${activeCategory === cat.id ? 'active' : ''} ${cat.coming_soon ? 'coming-soon' : ''}`}
+                style={cat.coming_soon ? { border: '1px solid rgba(234, 179, 8, 0.5)', color: '#fbbf24' } : {}}
               >
+                {cat.coming_soon && <Clock size={12} style={{ marginRight: 6 }} />}
                 {cat.name}
+                {cat.coming_soon && <span style={{ fontSize: '0.6em', marginLeft: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Coming Soon</span>}
               </button>
             ))
           )}
@@ -326,95 +329,173 @@ const MenuPage: React.FC<MenuPageProps> = ({ onNavigate }) => {
         paddingTop: '20px',
         backdropFilter: 'blur(10px)'
       }}>
-        {loading ? <MenuSkeleton /> : filteredProducts.map((product) => (
-          <div
-            key={product.id}
-            ref={(el) => { productRefs.current[product.id] = el; }}
-            data-id={product.id}
-            style={{
-              height: '35vh', // Reduce height of each card container to fit better on mobile
-              scrollSnapAlign: 'start',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '10px 20px',
-            }}
-          >
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ amount: 0.2, once: true }}
-              transition={{ type: 'tween', duration: 0.25, ease: 'easeOut' }}
-              className="rashti-card"
+        {/* Category Description Banner */}
+        {!loading && activeCategory !== 'all' && categories.find(c => c.id === activeCategory)?.description && (
+          <div style={{
+            padding: '16px',
+            marginBottom: '20px',
+            background: 'rgba(234, 179, 8, 0.15)',
+            border: '2px solid rgba(234, 179, 8, 0.4)',
+            borderRadius: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '12px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+          }}>
+            <AlertCircle color="#fbbf24" size={24} />
+            <p style={{ color: '#fbbf24', margin: 0, fontSize: '15px', textAlign: 'center', fontWeight: 'bold', fontFamily: 'Cinzel', letterSpacing: '0.5px' }}>
+              {categories.find(c => c.id === activeCategory)?.description}
+            </p>
+          </div>
+        )}
+
+        {loading ? <MenuSkeleton /> : filteredProducts.map((product) => {
+          const productCategory = categories.find(c => c.id === product.category_id);
+          const isComingSoon = product.coming_soon || productCategory?.coming_soon;
+
+          return (
+            <div
+              key={product.id}
+              ref={(el) => { productRefs.current[product.id] = el; }}
+              data-id={product.id}
               style={{
-                width: '100%',
-                maxWidth: '600px',
-                height: '100%',
-                justifyContent: 'space-between',
-                padding: '20px'
+                height: '45vh',
+                scrollSnapAlign: 'start',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '10px 20px',
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span className="rashti-chip active" style={{ fontSize: '10px', padding: '4px 10px', background: 'var(--persian-gold)', color: 'var(--persian-emerald-dark)' }}>
-                  {categories.find(c => c.id === product.category_id)?.name || 'Item'}
-                </span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <Star size={14} fill="#c9a45c" color="#c9a45c" />
-                  <span className="text-gold" style={{ fontWeight: 'bold', fontSize: '13px' }}>4.8</span>
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ amount: 0.2, once: true }}
+                transition={{ type: 'tween', duration: 0.25, ease: 'easeOut' }}
+                className="rashti-card"
+                style={{
+                  width: '100%',
+                  maxWidth: '600px',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  padding: '24px',
+                  opacity: isComingSoon ? 0.8 : 1,
+                  background: 'linear-gradient(145deg, rgba(8, 41, 32, 0.6) 0%, rgba(5, 26, 20, 0.8) 100%)',
+                  border: '1px solid rgba(255, 255, 255, 0.05)',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
+                }}
+              >
+                {/* Header: Chip + Rating */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <span className="rashti-chip active" style={{
+                    fontSize: '11px',
+                    padding: '6px 12px',
+                    background: isComingSoon ? '#fbbf24' : 'var(--persian-gold)',
+                    color: 'var(--persian-emerald-dark)',
+                    letterSpacing: '1px',
+                    fontWeight: 800
+                  }}>
+                    {isComingSoon ? 'COMING SOON' : (productCategory?.name?.toUpperCase() || 'ITEM')}
+                  </span>
+                  {!isComingSoon && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(0,0,0,0.2)', padding: '4px 8px', borderRadius: '12px' }}>
+                      <Star size={12} fill="#c9a45c" color="#c9a45c" />
+                      <span className="text-gold" style={{ fontWeight: 'bold', fontSize: '12px' }}>4.8</span>
+                    </div>
+                  )}
                 </div>
-              </div>
 
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '8px' }}>
-                {/* Title Line WITH MINI JERSEY */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  {/* Tiny Jersey Icon */}
-                  <div style={{ width: '40px', height: '50px', flexShrink: 0 }}>
-                    <JerseyImage
-                      src={(product.image_url && product.image_url.startsWith('jersey')) ? product.image_url : ''}
-                      text={product.name}
-                      alt="Team Jersey"
-                      forceGenerator={true}
-                    />
+                {/* Content: Title, Jersey, Desc */}
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    {/* Jersey Icon - Slightly Larger */}
+                    <div style={{ width: '50px', height: '60px', flexShrink: 0, filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))' }}>
+                      <JerseyImage
+                        src={(product.image_url && product.image_url.startsWith('jersey')) ? product.image_url : ''}
+                        text={product.name}
+                        alt="Team Jersey"
+                        forceGenerator={true}
+                      />
+                    </div>
+
+                    <h2 className="rashti-title" style={{
+                      fontSize: '22px',
+                      lineHeight: '1.1',
+                      borderBottom: 'none',
+                      margin: 0,
+                      textShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                    }}>
+                      {product.name}
+                    </h2>
                   </div>
 
-                  <h2 className="rashti-title" style={{ fontSize: '18px', lineHeight: '1.2', borderBottom: 'none' }}>
-                    {product.name}
-                  </h2>
+                  <p style={{
+                    color: 'rgba(255, 255, 255, 0.8)',
+                    fontSize: '15px',
+                    lineHeight: '1.6',
+                    fontFamily: 'Cormorant Garamond',
+                    overflow: 'hidden',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 3,
+                    WebkitBoxOrient: 'vertical',
+                    margin: 0,
+                    paddingRight: '10px'
+                  }}>
+                    {product.description || "Delicious, fresh ingredients prepared in the traditional Rashti style."}
+                  </p>
                 </div>
 
-                <p style={{
-                  color: 'rgba(255, 255, 255, 0.7)',
-                  fontSize: '14px',
-                  lineHeight: '1.5',
-                  fontFamily: 'Cormorant Garamond',
-                  overflow: 'hidden',
-                  display: '-webkit-box',
-                  WebkitLineClamp: 3,
-                  WebkitBoxOrient: 'vertical'
-                }}>
-                  {product.description || "Delicious, fresh ingredients prepared in the traditional Rashti style."}
-                </p>
-              </div>
+                {/* Footer: Price + Add Button */}
+                <div style={{ marginTop: 'auto', paddingTop: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span className="text-gold" style={{ fontSize: '10px', textTransform: 'uppercase', fontWeight: 'bold', opacity: 0.6, letterSpacing: '1px' }}>Prezzo</span>
+                    <span className="text-gold" style={{ fontSize: '26px', fontWeight: '800', fontFamily: 'Cinzel', lineHeight: '1' }}>
+                      €{(typeof product.price === 'string' ? parseFloat(product.price) : (product.price || 0)).toFixed(2)}
+                    </span>
+                  </div>
 
-              <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span className="text-gold" style={{ fontSize: '11px', textTransform: 'uppercase', fontWeight: 'bold', opacity: 0.8 }}>Price</span>
-                  <span className="text-gold" style={{ fontSize: '24px', fontWeight: '800', fontFamily: 'Cinzel' }}>
-                    €{(typeof product.price === 'string' ? parseFloat(product.price) : (product.price || 0)).toFixed(2)}
-                  </span>
+                  <button
+                    onClick={() => !isComingSoon && addToCart(product)}
+                    disabled={!!isComingSoon}
+                    className={isComingSoon ? "rashti-btn-disabled" : "rashti-btn-primary"}
+                    style={isComingSoon ? {
+                      background: 'rgba(255,255,255,0.05)',
+                      color: '#6b7280',
+                      cursor: 'not-allowed',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      padding: '12px 24px',
+                      borderRadius: '14px',
+                      fontWeight: 'bold',
+                      fontSize: '13px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    } : {
+                      padding: '12px 28px',
+                      fontSize: '15px',
+                      boxShadow: '0 4px 15px rgba(201, 164, 92, 0.3)'
+                    }}
+                  >
+                    {isComingSoon ? (
+                      <>
+                        <Clock size={18} />
+                        <span style={{ fontWeight: 'bold', letterSpacing: '1px' }}>SOON</span>
+                      </>
+                    ) : (
+                      <>
+                        <Plus size={20} />
+                        <span style={{ fontWeight: 'bold', letterSpacing: '1px' }}>AGGIUNGI</span>
+                      </>
+                    )}
+                  </button>
                 </div>
-
-                <button
-                  onClick={() => addToCart(product)}
-                  className="rashti-btn-primary"
-                >
-                  <Plus size={20} />
-                  <span style={{ fontWeight: 'bold', fontSize: '14px' }}>ADD</span>
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        ))}
+              </motion.div>
+            </div>
+          );
+        })}
 
         {/* Spacer */}
         <div style={{ height: '20vh' }} />

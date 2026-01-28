@@ -3,6 +3,7 @@ import { LayoutDashboard, Pizza, Gift, Users, LogOut, ScanLine, Truck } from 'lu
 import MenuManager from './MenuManager';
 import VerifyPage from './VerifyPage';
 import DispatchPage from './DispatchPage';
+import OffersManager from './OffersManager';
 import './Admin.css';
 import { supabase } from './lib/supabase';
 
@@ -82,13 +83,7 @@ const AdminApp = () => {
             </div>
           )}
 
-          {activeTab === 'offers' && (
-            <div className="card" style={{ padding: '3rem', textAlign: 'center', borderStyle: 'dashed' }}>
-              <Gift size={48} color="#cbd5e1" style={{ margin: '0 auto 1rem' }} />
-              <h3>Offers Manager</h3>
-              <p style={{ color: '#64748b' }}>Configure special offers and generate QR codes here.</p>
-            </div>
-          )}
+          {activeTab === 'offers' && <OffersManager />}
 
           {activeTab === 'users' && (
             <div className="card" style={{ padding: '3rem', textAlign: 'center', borderStyle: 'dashed' }}>

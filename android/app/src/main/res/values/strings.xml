@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Time Out Pizza</string>
-    <string name="title_activity_main">Time Out Pizza</string>
-    <string name="package_name">com.timeoutpizza.app</string>
-    <string name="custom_url_scheme">com.timeoutpizza.app</string>
+    <string name="app_name">Rasht</string>
+    <string name="title_activity_main">Rasht</string>
+    <string name="package_name">com.gastronomia.rasht</string>
+    <string name="custom_url_scheme">com.gastronomia.rasht</string>
 </resources>

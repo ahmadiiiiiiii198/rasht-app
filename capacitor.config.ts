@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.timeoutpizza.app',
-  appName: 'Time Out Pizza',
+  appId: 'com.gastronomia.rasht',
+  appName: 'Rasht',
   webDir: 'build',
   plugins: {
     PushNotifications: {

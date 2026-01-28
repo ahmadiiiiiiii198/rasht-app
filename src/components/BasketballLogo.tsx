@@ -23,13 +23,10 @@ const RashtLogo: React.FC<RashtLogoProps> = ({ className }) => {
                 backgroundColor: '#0d3d2e'
             }}
         >
-            {/* Video Logo - Auto playing, looped, muted */}
-            <video
-                src="/rasht-logo.mp4"
-                autoPlay
-                loop
-                muted
-                playsInline
+            {/* Static Logo Image - Better Android WebView compatibility */}
+            <img
+                src="/rasht-logo.png"
+                alt="Gastronomia Rasht"
                 style={{
                     width: '100%',
                     height: '100%',

@@ -50,10 +50,10 @@ class BusinessHoursService {
 
     // Create a separate, non-authenticated Supabase client for business hours
     // This ensures business hours work regardless of user authentication state
-    // Using the same credentials as ruralpizza-main since they point to same supabase
+    // Using the same credentials as the main app
     private readonly publicSupabase = createClient(
-        'https://jncuwwavffepnajxvjxq.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpuY3V3d2F2ZmZlcG5hanh2anhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk4MzMxMjUsImV4cCI6MjA3NTQwOTEyNX0.wDlEZbpy1rfAk8GtzuqB28qINkAG3GbqMxVZmW85hzo',
+        'https://crhmtzrnahdpgrpmxmjk.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNyaG10enJuYWhkcGdycG14bWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxMTk2NDYsImV4cCI6MjA4NDY5NTY0Nn0.Ig3jcGDMMVmOlSIp3G3Zy6sD-78mOYlpfIlc51ml2-k',
         {
             auth: {
                 persistSession: false, // Don't persist sessions for this client

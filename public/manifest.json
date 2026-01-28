@@ -1,6 +1,6 @@
 {
-  "short_name": "Time Out Pizza",
-  "name": "Time Out Pizza",
+  "short_name": "Rasht",
+  "name": "Gastronomia Rasht",
   "icons": [
     {
       "src": "favicon.ico",
@@ -8,13 +8,13 @@
       "type": "image/x-icon"
     },
     {
-      "src": "timeout-logo.png",
+      "src": "rasht-logo.png",
       "type": "image/png",
       "sizes": "192x192",
       "purpose": "any maskable"
     },
     {
-      "src": "timeout-logo.png",
+      "src": "rasht-logo.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any maskable"
@@ -22,6 +22,6 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#ea580c",
-  "background_color": "#0f172a"
+  "theme_color": "#0d3d2e",
+  "background_color": "#082920"
 }
