@@ -143,9 +143,9 @@ export const GlobalSettings: React.FC = () => {
                     onClick={toggleMute}
                     style={{
                         position: 'fixed',
-                        top: '130px', /* Moved to top-right to avoid footer conflict */
+                        bottom: '170px', /* Stacked above Cart button (which is at ~100px) */
                         right: '16px',
-                        zIndex: 90, /* Lower than header but above bg */
+                        zIndex: 90,
                         width: '40px',
                         height: '40px',
                         borderRadius: '50%',

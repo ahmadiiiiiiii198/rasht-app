@@ -334,7 +334,7 @@ const MenuPage: React.FC<MenuPageProps> = ({ onNavigate }) => {
           initial={{ scale: 0 }} animate={{ scale: 1 }}
           onClick={() => onNavigate?.('cart')}
           style={{
-            position: 'absolute', bottom: '100px', right: '20px', zIndex: 90,
+            position: 'absolute', bottom: '100px', right: '16px', zIndex: 90,
             width: '56px', height: '56px', borderRadius: '50%',
             background: 'var(--persian-gold)', boxShadow: '0 8px 30px rgba(0,0,0,0.5)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #051a14'
