@@ -103,7 +103,7 @@ const MenuManager = () => {
                 setUploadProgress(prev => Math.min(prev + 10, 90));
             }, 100);
 
-            const { data, error } = await supabase.storage
+            const { error } = await supabase.storage
                 .from('product-images')
                 .upload(filePath, file, {
                     cacheControl: '3600',
