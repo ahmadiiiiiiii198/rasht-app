@@ -1,20 +1,15 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, ShoppingCart, Star, Search, Clock, AlertCircle } from 'lucide-react';
+import { Plus, ShoppingCart, Star, Search, Clock, ChevronDown } from 'lucide-react';
 import { getProducts, getCategories, Product, Category } from '../lib/database';
 import JerseyImage from '../components/JerseyImage';
 
+// --- TYPES ---
 interface MenuPageProps {
   onNavigate?: (page: string) => void;
 }
 
-// Simple cache for products and categories
-let cachedProducts: Product[] | null = null;
-let cachedCategories: Category[] | null = null;
-let cacheTimestamp = 0;
-const CACHE_DURATION = 0;
-
-// Helper to get Pizza Image based on keywords
+// --- ASSET HELPER ---
 const getPizzaImage = (product: Product): string => {
   const name = product.name.toUpperCase();
   const desc = (product.description || '').toLowerCase();
@@ -31,409 +26,326 @@ const getPizzaImage = (product: Product): string => {
   if (desc.includes('spianata') || desc.includes('piccante') || desc.includes('salami') || desc.includes('pepperoni')) return '/pizza-spicy-salami.png';
   if (desc.includes('zucchine') || desc.includes('melanzane') || desc.includes('peperoni') || desc.includes('verdure')) return '/pizza-veggie-grilled.png';
 
-  if (name.includes('MARGHERITA') || name.includes('CLASSIC')) return '/pizza-margherita-hero.png';
-
   return '/pizza-margherita-hero.png';
 };
 
+// --- CACHE ---
+let cachedProducts: Product[] | null = null;
+let cachedCategories: Category[] | null = null;
 
 const MenuPage: React.FC<MenuPageProps> = ({ onNavigate }) => {
+  // --- STATE ---
   const [products, setProducts] = useState<Product[]>(cachedProducts || []);
   const [categories, setCategories] = useState<Category[]>(cachedCategories || []);
   const [loading, setLoading] = useState(!cachedProducts);
   const [activeCategory, setActiveCategory] = useState<string>('all');
-  const [activeProduct, setActiveProduct] = useState<Product | null>(null);
-  const [cart, setCart] = useState<{ [key: string]: number }>({});
   const [searchQuery, setSearchQuery] = useState('');
+  const [cart, setCart] = useState<{ [key: string]: number }>({});
 
-  const observerRef = useRef<IntersectionObserver | null>(null);
-  const productRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  // Ref for scroll container to reset scroll on category change
+  const containerRef = useRef<HTMLDivElement>(null);
 
+  // --- DATA LOADING ---
   useEffect(() => {
     const loadData = async () => {
-      const now = Date.now();
-      if (cachedProducts && cachedCategories && (now - cacheTimestamp) < CACHE_DURATION) {
+      if (cachedProducts && cachedCategories) {
         setProducts(cachedProducts);
         setCategories(cachedCategories);
         setLoading(false);
-        if (cachedProducts.length > 0) setActiveProduct(cachedProducts[0]);
         return;
       }
-
       setLoading(true);
       try {
         const [productsData, categoriesData] = await Promise.all([getProducts(), getCategories()]);
         cachedProducts = productsData;
         cachedCategories = categoriesData;
-        cacheTimestamp = now;
         setProducts(productsData);
         setCategories(categoriesData);
-        if (productsData.length > 0) setActiveProduct(productsData[0]);
       } catch (error) {
-        console.error('Error loading menu data:', error);
+        console.error('Data load error:', error);
       } finally {
         setLoading(false);
       }
     };
     loadData();
 
+    // Load Cart
     const savedCart = localStorage.getItem('timeoutpizza_cart');
     if (savedCart) {
       try {
         const cartItems = JSON.parse(savedCart);
         const cartMap: { [key: string]: number } = {};
-        cartItems.forEach((item: any) => {
-          cartMap[item.id] = (cartMap[item.id] || 0) + item.quantity;
-        });
+        cartItems.forEach((item: any) => cartMap[item.id] = (cartMap[item.id] || 0) + item.quantity);
         setCart(cartMap);
       } catch (e) {
-        console.error("Error parsing cart", e);
+        console.error("Cart parse error", e);
       }
     }
   }, []);
 
-  useEffect(() => {
-    if (loading || products.length === 0) return;
-
-    observerRef.current = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          const productId = entry.target.getAttribute('data-id');
-          const product = products.find(p => p.id === productId);
-          if (product) setActiveProduct(product);
-        }
-      });
-    }, { root: null, rootMargin: '-40% 0px -40% 0px', threshold: 0.1 });
-
-    Object.values(productRefs.current).forEach((el) => {
-      if (el) observerRef.current?.observe(el);
-    });
-
-    return () => observerRef.current?.disconnect();
-  }, [loading, products, activeCategory]);
-
+  // --- CART HANDLER ---
   const addToCart = (product: Product, qty: number = 1) => {
     setCart(prev => ({ ...prev, [product.id]: (prev[product.id] || 0) + qty }));
     const savedCart = localStorage.getItem('timeoutpizza_cart');
     let cartItems: any[] = savedCart ? JSON.parse(savedCart) : [];
-    const existingItem = cartItems.find((item: any) => item.id === product.id);
-    if (existingItem) {
-      existingItem.quantity += qty;
-    } else {
-      cartItems.push({ id: product.id, name: product.name, price: product.price, quantity: qty, image_url: product.image_url });
-    }
+    const existing = cartItems.find((i: any) => i.id === product.id);
+    if (existing) existing.quantity += qty;
+    else cartItems.push({ id: product.id, name: product.name, price: product.price, quantity: qty, image_url: product.image_url });
     localStorage.setItem('timeoutpizza_cart', JSON.stringify(cartItems));
     window.dispatchEvent(new Event('cartUpdated'));
   };
 
-  const filteredProducts = useMemo(() => {
-    let filtered = products;
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(p => p.name.toLowerCase().includes(query) || (p.description && p.description.toLowerCase().includes(query)));
-    }
-    if (activeCategory !== 'all') {
-      filtered = filtered.filter(p => p.category_id === activeCategory);
-    }
-    return filtered;
-  }, [products, activeCategory, searchQuery]);
-
   const getTotalItems = () => Object.values(cart).reduce((a, b) => a + b, 0);
 
+  // --- FILTERING ---
+  const filteredProducts = useMemo(() => {
+    let res = products;
+    if (activeCategory !== 'all') res = res.filter(p => p.category_id === activeCategory);
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      res = res.filter(p => p.name.toLowerCase().includes(q) || (p.description && p.description.toLowerCase().includes(q)));
+    }
+    return res;
+  }, [products, activeCategory, searchQuery]);
+
+  // Reset scroll when category changes
+  useEffect(() => {
+    if (containerRef.current) containerRef.current.scrollTop = 0;
+  }, [activeCategory]);
+
+
   return (
-    <div className="rashti-page-dark" style={{ position: 'relative', overflow: 'hidden' }}>
+    <div className="rashti-page-dark" style={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
 
-      {/* HERO BACKGROUND - Fixed pizza image that changes */}
+      {/* 1. HEADER (Fixed) */}
       <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: '55vh',
-        zIndex: 0,
-        overflow: 'hidden'
-      }}>
-        <AnimatePresence mode="wait">
-          {activeProduct && (
-            <motion.img
-              key={activeProduct.id}
-              src={getPizzaImage(activeProduct)}
-              alt={activeProduct.name}
-              initial={{ opacity: 0, scale: 1.1 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.5 }}
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                objectPosition: 'center'
-              }}
-            />
-          )}
-        </AnimatePresence>
-        {/* Gradient overlay */}
-        <div style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: '60%',
-          background: 'linear-gradient(to top, #051a14 0%, transparent 100%)',
-          pointerEvents: 'none'
-        }} />
-      </div>
-
-      {/* HEADER - Fixed at top */}
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 50,
-        background: 'linear-gradient(180deg, rgba(5, 26, 20, 0.95) 0%, rgba(5, 26, 20, 0.8) 70%, transparent 100%)',
-        paddingTop: '60px',
-        paddingLeft: '75px',
-        paddingRight: '16px',
-        paddingBottom: '16px'
+        position: 'absolute', top: 0, left: 0, right: 0, zIndex: 100,
+        background: 'linear-gradient(180deg, rgba(5,26,20,0.95) 0%, rgba(5,26,20,0) 100%)',
+        padding: '60px 16px 20px 80px' // Left padding for generic back button area
       }}>
         {/* Search */}
-        <div style={{ position: 'relative', marginBottom: '10px' }}>
+        <div style={{ position: 'relative', marginBottom: '12px' }}>
           <Search size={16} className="text-gold" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
           <input
-            type="text"
-            placeholder="Cerca..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Search pizza..."
             className="rashti-input"
-            style={{ paddingLeft: '38px', height: '40px', fontSize: '14px' }}
+            style={{ height: '40px', fontSize: '14px', background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)' }}
           />
         </div>
+
         {/* Categories */}
-        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', scrollbarWidth: 'none' }}>
-          <button onClick={() => setActiveCategory('all')} className={`rashti-chip ${activeCategory === 'all' ? 'active' : ''}`} style={{ fontSize: '12px', padding: '6px 14px' }}>
-            Tutti
-          </button>
-          {!loading && categories.map((cat) => (
+        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', scrollbarWidth: 'none', paddingBottom: '4px' }}>
+          {[{ id: 'all', name: 'All' }, ...categories].map(cat => (
             <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
               className={`rashti-chip ${activeCategory === cat.id ? 'active' : ''}`}
-              style={{ fontSize: '12px', padding: '6px 14px', whiteSpace: 'nowrap' }}
+              style={{ padding: '6px 14px', fontSize: '12px', flexShrink: 0, border: activeCategory === cat.id ? 'none' : '1px solid rgba(255,255,255,0.2)' }}
             >
-              {cat.coming_soon && <Clock size={10} style={{ marginRight: 4 }} />}
+              {(cat as any).coming_soon && <Clock size={10} style={{ marginRight: 4 }} />}
               {cat.name}
             </button>
           ))}
         </div>
       </div>
 
-      {/* SCROLLABLE PRODUCT CARDS */}
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        overflowY: 'auto',
-        scrollSnapType: 'y mandatory',
-        zIndex: 10
-      }}>
-        {/* Spacer to push first card below hero */}
-        <div style={{ height: '52vh' }} />
-
+      {/* 2. MAIN FULL-PAGE SCROLL CONTAINER */}
+      <div
+        ref={containerRef}
+        style={{
+          flex: 1,
+          overflowY: 'auto',
+          scrollSnapType: 'y mandatory',
+          scrollBehavior: 'smooth',
+          position: 'relative',
+          height: '100%'
+        }}
+      >
         {loading ? (
-          <div style={{ padding: '20px', textAlign: 'center' }}>
-            <span className="text-gold">Caricamento...</span>
+          <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span className="text-gold">Loading Menu...</span>
+          </div>
+        ) : filteredProducts.length === 0 ? (
+          <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.6 }}>
+            <Search size={48} color="#c9a45c" style={{ marginBottom: 16 }} />
+            <p style={{ color: '#fff' }}>No items found</p>
           </div>
         ) : (
-          filteredProducts.map((product) => {
+          filteredProducts.map((product, index) => {
             const productCategory = categories.find(c => c.id === product.category_id);
             const isComingSoon = product.coming_soon || productCategory?.coming_soon;
 
             return (
               <div
                 key={product.id}
-                ref={(el) => { productRefs.current[product.id] = el; }}
-                data-id={product.id}
                 style={{
-                  height: '48vh',
+                  height: '100vh',
+                  width: '100%',
                   scrollSnapAlign: 'start',
-                  padding: '0 16px 16px 16px',
+                  scrollSnapStop: 'always',
+                  position: 'relative',
                   display: 'flex',
-                  alignItems: 'flex-start'
+                  flexDirection: 'column',
+                  overflow: 'hidden'
                 }}
               >
-                <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, amount: 0.3 }}
-                  transition={{ duration: 0.4 }}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    background: 'linear-gradient(145deg, rgba(13, 61, 46, 0.95) 0%, rgba(8, 41, 32, 0.98) 100%)',
-                    borderRadius: '24px',
-                    padding: '20px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    border: '1px solid rgba(201, 164, 92, 0.25)',
-                    boxShadow: '0 10px 40px rgba(0, 0, 0, 0.5)',
-                    opacity: isComingSoon ? 0.75 : 1
-                  }}
-                >
-                  {/* Top: Category Badge + Rating */}
+                {/* A. VISUAL HALF (Top 55%) */}
+                <div style={{
+                  flex: '55 1 0',
+                  position: 'relative',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  paddingTop: '80px', // Clear header space
+                  paddingBottom: '20px'
+                }}>
+                  <motion.img
+                    initial={{ scale: 0.8, opacity: 0, rotate: -10 }}
+                    whileInView={{ scale: 1, opacity: 1, rotate: 0 }}
+                    viewport={{ amount: 0.5 }}
+                    transition={{ type: 'spring', damping: 20, stiffness: 100 }}
+                    src={getPizzaImage(product)}
+                    alt={product.name}
+                    style={{
+                      width: '85%',
+                      maxWidth: '320px',
+                      height: 'auto',
+                      maxHeight: '100%',
+                      objectFit: 'contain',
+                      filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.5))',
+                      zIndex: 10
+                    }}
+                  />
+
+                  {/* Background Radial Glow */}
+                  <div style={{
+                    position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+                    width: '120%', height: '80%',
+                    background: 'radial-gradient(circle, rgba(201,164,92,0.15) 0%, transparent 70%)',
+                    zIndex: 0
+                  }} />
+                </div>
+
+                {/* B. INFO CARD HALF (Bottom 45%) */}
+                <div style={{
+                  flex: '45 1 0',
+                  background: 'linear-gradient(180deg, rgba(13,61,46,0.95) 0%, rgba(5,26,20,1) 100%)',
+                  borderTopLeftRadius: '32px',
+                  borderTopRightRadius: '32px',
+                  borderTop: '1px solid rgba(255,255,255,0.1)',
+                  boxShadow: '0 -10px 40px rgba(0,0,0,0.3)',
+                  padding: '24px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between', // Ensures button stays at bottom
+                  position: 'relative',
+                  zIndex: 20
+                }}>
+                  {/* Pull Indicator */}
+                  <div style={{ position: 'absolute', top: '10px', left: '50%', transform: 'translateX(-50%)', width: '40px', height: '4px', background: 'rgba(255,255,255,0.1)', borderRadius: '2px' }} />
+
+                  {/* Top: Badges */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{
-                      background: isComingSoon ? '#f59e0b' : 'var(--persian-gold)',
-                      color: '#082920',
-                      fontSize: '10px',
-                      fontWeight: 800,
-                      padding: '5px 12px',
-                      borderRadius: '10px',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px'
+                      background: isComingSoon ? '#fbbf24' : 'var(--persian-gold)',
+                      color: '#051a14',
+                      fontSize: '11px', fontWeight: 800, padding: '4px 10px', borderRadius: '8px', letterSpacing: '0.5px'
                     }}>
-                      {isComingSoon ? 'PRESTO' : (productCategory?.name || 'MENU')}
+                      {isComingSoon ? 'COMING SOON' : (productCategory?.name || 'MENU')}
                     </span>
                     {!isComingSoon && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <Star size={14} fill="#c9a45c" color="#c9a45c" />
-                        <span style={{ color: '#c9a45c', fontSize: '13px', fontWeight: 700 }}>4.8</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: '12px' }}>
+                        <Star size={12} fill="#c9a45c" color="#c9a45c" />
+                        <span style={{ color: '#c9a45c', fontSize: '12px', fontWeight: 'bold' }}>4.8</span>
                       </div>
                     )}
                   </div>
 
-                  {/* Middle: Jersey + Name + Description */}
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '12px', padding: '10px 0' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                      <div style={{ width: '50px', height: '60px', flexShrink: 0 }}>
-                        <JerseyImage
-                          src={(product.image_url && product.image_url.startsWith('jersey')) ? product.image_url : ''}
-                          text={product.name}
-                          alt="Jersey"
-                          forceGenerator={true}
-                        />
+                  {/* Middle: Content */}
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ width: '40px', height: '48px', flexShrink: 0 }}>
+                        <JerseyImage src={product.image_url?.startsWith('jersey') ? product.image_url : ''} text={product.name} alt="Kit" forceGenerator />
                       </div>
-                      <h2 style={{
-                        color: 'var(--persian-gold)',
-                        fontSize: '22px',
-                        fontWeight: 700,
-                        fontFamily: 'Cinzel',
-                        margin: 0,
-                        lineHeight: 1.15,
-                        textShadow: '0 2px 4px rgba(0,0,0,0.3)'
-                      }}>
+                      <h2 style={{ fontFamily: 'Cinzel', fontSize: '24px', lineHeight: '1.1', color: 'var(--persian-gold)', margin: 0, textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
                         {product.name}
                       </h2>
                     </div>
+
                     <p style={{
-                      color: 'rgba(255, 255, 255, 0.8)',
-                      fontSize: '14px',
-                      lineHeight: 1.5,
-                      fontFamily: 'Cormorant Garamond',
-                      margin: 0,
-                      overflow: 'hidden',
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical'
+                      fontFamily: 'Cormorant Garamond', fontSize: '16px', lineHeight: '1.4', color: 'rgba(255,255,255,0.8)', margin: 0,
+                      display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden'
                     }}>
-                      {product.description || "Ingredienti freschi preparati secondo tradizione."}
+                      {product.description || "Authentic flavors prepared with premium ingredients in the Rasht tradition."}
                     </p>
                   </div>
 
-                  {/* Bottom: Price + Button */}
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    paddingTop: '12px',
-                    borderTop: '1px solid rgba(201, 164, 92, 0.15)'
-                  }}>
+                  {/* Bottom: Action */}
+                  <div style={{ paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div>
-                      <div style={{ color: 'rgba(201, 164, 92, 0.6)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Prezzo</div>
-                      <div style={{ color: 'var(--persian-gold)', fontSize: '28px', fontWeight: 800, fontFamily: 'Cinzel', lineHeight: 1 }}>
-                        €{(typeof product.price === 'string' ? parseFloat(product.price) : (product.price || 0)).toFixed(2)}
-                      </div>
+                      <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'rgba(201,164,92,0.7)', letterSpacing: '1px', display: 'block' }}>Prezzo</span>
+                      <span style={{ fontFamily: 'Cinzel', fontSize: '28px', color: 'var(--persian-gold)', fontWeight: 700, lineHeight: 1 }}>
+                        €{Number(product.price).toFixed(2)}
+                      </span>
                     </div>
+
                     <button
-                      onClick={() => !isComingSoon && addToCart(product)}
                       disabled={!!isComingSoon}
-                      className={isComingSoon ? "" : "rashti-btn-primary"}
+                      onClick={() => !isComingSoon && addToCart(product)}
+                      className={isComingSoon ? "rashti-btn-disabled" : "rashti-btn-primary"}
                       style={isComingSoon ? {
-                        background: 'rgba(255,255,255,0.1)',
-                        color: '#9ca3af',
-                        border: '1px solid rgba(255,255,255,0.15)',
-                        padding: '12px 20px',
-                        borderRadius: '14px',
-                        fontSize: '13px',
-                        fontWeight: 700,
-                        cursor: 'not-allowed',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px'
+                        background: 'rgba(255,255,255,0.05)', color: '#666', padding: '12px 24px', borderRadius: '14px', fontSize: '13px', fontWeight: 'bold', display: 'flex', gap: '8px', alignItems: 'center'
                       } : {
-                        padding: '14px 24px',
-                        fontSize: '14px',
-                        fontWeight: 700,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        boxShadow: '0 6px 20px rgba(201, 164, 92, 0.35)'
+                        padding: '12px 32px', fontSize: '15px', fontWeight: 'bold', boxShadow: '0 4px 20px rgba(201,164,92,0.4)', display: 'flex', gap: '8px', alignItems: 'center'
                       }}
                     >
                       {isComingSoon ? (
-                        <><Clock size={18} /><span>PRESTO</span></>
+                        <><Clock size={16} /><span>PRESTO</span></>
                       ) : (
-                        <><Plus size={20} /><span>AGGIUNGI</span></>
+                        <><Plus size={18} /><span>AGGIUNGI</span></>
                       )}
                     </button>
                   </div>
-                </motion.div>
+
+                  {/* Scroll Hint Arrow (Except last item) */}
+                  {index < filteredProducts.length - 1 && (
+                    <motion.div
+                      animate={{ y: [0, 5, 0] }}
+                      transition={{ repeat: Infinity, duration: 2 }}
+                      style={{ position: 'absolute', bottom: '8px', left: '50%', transform: 'translateX(-50%)', opacity: 0.3 }}
+                    >
+                      <ChevronDown size={16} color="#fff" />
+                    </motion.div>
+                  )}
+                </div>
               </div>
             );
           })
         )}
-
-        {/* Bottom spacer */}
-        <div style={{ height: '20vh' }} />
       </div>
 
-      {/* Cart FAB */}
+      {/* 3. FLOATERS */}
       {getTotalItems() > 0 && (
         <motion.button
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
+          initial={{ scale: 0 }} animate={{ scale: 1 }}
           onClick={() => onNavigate?.('cart')}
-          className="rashti-btn-primary"
           style={{
-            position: 'fixed',
-            bottom: '24px',
-            right: '24px',
-            width: '60px',
-            height: '60px',
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 100,
-            boxShadow: '0 8px 24px rgba(201, 164, 92, 0.4)'
+            position: 'absolute', bottom: '100px', right: '20px', zIndex: 90,
+            width: '56px', height: '56px', borderRadius: '50%',
+            background: 'var(--persian-gold)', boxShadow: '0 8px 30px rgba(0,0,0,0.5)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #051a14'
           }}
         >
-          <div style={{ position: 'relative' }}>
-            <ShoppingCart size={24} color="#082920" />
-            <span style={{
-              position: 'absolute', top: '-10px', right: '-10px',
-              background: '#082920', color: '#c9a45c',
-              fontSize: '11px', fontWeight: 'bold',
-              width: '20px', height: '20px', borderRadius: '50%',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              border: '2px solid #c9a45c'
-            }}>
-              {getTotalItems()}
-            </span>
-          </div>
+          <ShoppingCart size={22} color="#051a14" strokeWidth={2.5} />
+          <span style={{
+            position: 'absolute', top: -5, right: -5, width: 20, height: 20, borderRadius: '50%',
+            background: '#051a14', color: 'var(--persian-gold)', fontSize: '10px', fontWeight: 'bold',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--persian-gold)'
+          }}>
+            {getTotalItems()}
+          </span>
         </motion.button>
       )}
     </div>
